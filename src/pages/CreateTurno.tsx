@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 type Service = {
   id: string
@@ -141,24 +141,6 @@ function buildCalendar(year: number, month: number): CalendarCell[] {
   return cells
 }
 
-function Logo() {
-  return (
-    <div className="flex items-center gap-2">
-      <svg
-        className="h-9 w-9 shrink-0 text-[#1d6bff]"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        aria-hidden
-      >
-        <path d="M12 2l1.9 5.8h6.1l-4.9 3.6 1.9 5.8-4.9-3.6-4.9 3.6 1.9-5.8-4.9-3.6h6.1L12 2z" />
-      </svg>
-      <span className="text-lg font-bold tracking-tight text-neutral-900">
-        Barbería Elite
-      </span>
-    </div>
-  )
-}
-
 function CheckIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -257,33 +239,8 @@ export default function CreateTurno() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-neutral-800">
-      <header className="border-b border-neutral-100 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 md:px-6">
-          <a href="/" className="flex items-center gap-2">
-            <Logo />
-          </a>
-          <nav className="flex items-center gap-6 text-sm text-neutral-500">
-            <a href="#" className="hidden hover:text-neutral-800 sm:inline">
-              Mis Turnos
-            </a>
-            <a href="#" className="hidden hover:text-neutral-800 sm:inline">
-              Servicios
-            </a>
-            <a href="#" className="hidden hover:text-neutral-800 sm:inline">
-              Barberos
-            </a>
-            <button
-              type="button"
-              className="rounded-full bg-[#1d6bff] px-5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-[#155eea]"
-            >
-              Mi Perfil
-            </button>
-          </nav>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-6xl px-4 py-8 md:px-6 md:py-10">
+    <div className="bg-white pb-8 text-neutral-800 sm:pb-10">
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:py-8 md:px-6 md:py-10">
         <div className="mb-10">
           <h1 className="text-3xl font-bold tracking-tight text-neutral-900 md:text-4xl">
             Reservar Turno
@@ -546,18 +503,6 @@ export default function CreateTurno() {
           </div>
         </div>
       </main>
-
-      <footer className="mt-16 border-t border-neutral-100 py-10 text-center text-sm text-neutral-400">
-        <p>© {new Date().getFullYear()} Barbería Elite. Todos los derechos reservados.</p>
-        <div className="mt-3 flex flex-wrap justify-center gap-4">
-          <a href="#" className="hover:text-neutral-600">
-            Términos y Condiciones
-          </a>
-          <a href="#" className="hover:text-neutral-600">
-            Política de Privacidad
-          </a>
-        </div>
-      </footer>
     </div>
   )
 }
