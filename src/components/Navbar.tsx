@@ -1,19 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 
-function LogoMark({ className }: { className?: string }) {
-  return (
-    <div
-      className={`flex size-9 shrink-0 items-center justify-center rounded bg-[#0056b3] ${className ?? ''}`}
-      aria-hidden
-    >
-      <svg className="size-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-        <path d="M8 4v6M8 14v6M12 6l-2 4 2 4M14 4l2 4-2 4" strokeLinecap="round" />
-        <path d="M17 5c2 0 3 1.5 3 3.5S19 12 17 12" strokeLinecap="round" />
-      </svg>
-    </div>
-  )
-}
+import { Logo } from '../utils/logo'
 
 const desktopNavLink = ({ isActive }: { isActive: boolean }) =>
   `text-xs font-semibold tracking-widest transition hover:text-[#0056b3] ${
@@ -53,11 +41,8 @@ export default function Navbar() {
         className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4 lg:gap-6 lg:px-8"
         style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top, 0px))' }}
       >
-        <Link to="/" className="flex min-w-0 items-center gap-2 sm:gap-3">
-          <LogoMark />
-          <span className="truncate text-xs font-extrabold tracking-tight text-[#003d82] min-[380px]:text-sm sm:text-base">
-            BARBERÍA PREMIUM
-          </span>
+        <Link to="/" className="flex size-18 shrink-0 items-center justify-center rounded">
+          <Logo />
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex lg:gap-10" aria-label="Principal">

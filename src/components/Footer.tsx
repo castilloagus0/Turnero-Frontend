@@ -2,19 +2,8 @@ import { type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import ScrollReveal from './ScrollReveal'
 
-function LogoMarkSmall() {
-  return (
-    <div
-      className="flex size-8 shrink-0 items-center justify-center rounded bg-[#0056b3]"
-      aria-hidden
-    >
-      <svg className="size-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-        <path d="M8 4v6M8 14v6M12 6l-2 4 2 4M14 4l2 4-2 4" strokeLinecap="round" />
-        <path d="M17 5c2 0 3 1.5 3 3.5S19 12 17 12" strokeLinecap="round" />
-      </svg>
-    </div>
-  )
-}
+import { Logo } from '../utils/logo'
+
 
 function SocialIcon({ children, label }: { children: ReactNode; label: string }) {
   return (
@@ -38,9 +27,8 @@ export default function Footer() {
         style={{ paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom, 0px))' }}
       >
         <ScrollReveal variant="fade-up">
-          <Link to="/" className="flex items-center gap-2.5">
-            <LogoMarkSmall />
-            <span className="text-sm font-extrabold tracking-tight text-[#003d82]">BARBERÍA PREMIUM</span>
+          <Link to="/" className="flex items-center gap-2.5 size-18">
+            <Logo />
           </Link>
         </ScrollReveal>
 
@@ -85,10 +73,10 @@ export default function Footer() {
         <ScrollReveal variant="fade-up" delay={240}>
           <div className="space-y-1">
             <p className="text-xs text-neutral-500">
-              © {year} BARBERÍA PREMIUM. TODOS LOS DERECHOS RESERVADOS.
+              © {year} LC BARBER. TODOS LOS DERECHOS RESERVADOS.
             </p>
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400">
-              Designed for excellence
+              Designed by Agustín Castillo
             </p>
           </div>
         </ScrollReveal>
