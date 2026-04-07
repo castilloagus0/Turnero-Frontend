@@ -2,30 +2,27 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AuthPageShell, { authFieldClass, authLabelClass } from '../components/AuthPageShell'
 import { getUserProfile, saveUserProfile } from '../lib/userProfileStorage'
+import { login } from '../service/auth.service'
 
 export default function Login() {
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(null)
+
     const form = e.currentTarget
-    const data = new FormData(form)
-    const email = String(data.get('email') ?? '').trim()
-    const password = String(data.get('password') ?? '')
-    if (!email || !password) {
-      setError('Completá correo y contraseña.')
-      return
+    const email = (form.elements.namedItem('email') as HTMLInputElement).value
+    const password = (form.elements.namedItem('password') as HTMLInputElement).value
+
+    try {
+      const loginUser = await login(email, password)
+      saveUserProfile(loginUser) //Llamo al metodo que almacena las credenciales en el localStorage.
+      navigate('/user-dashboard')
+    } catch {
+      setError('Error al ingresar. Intentá de nuevo.')
     }
-    const existing = getUserProfile()
-    const fallbackName = email.includes('@') ? email.split('@')[0] : 'Usuario'
-    saveUserProfile({
-      fullName: existing?.fullName ?? fallbackName,
-      email,
-    })
-    // Conectar con tu API de autenticación
-    navigate('/user-dashboard')
   }
 
   return (

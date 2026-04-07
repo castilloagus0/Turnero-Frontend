@@ -3,6 +3,8 @@ import { Link, NavLink, useLocation } from 'react-router-dom'
 
 import { Logo } from '../utils/logo'
 
+import { getUserProfile, clearUserProfile } from '../lib/userProfileStorage'
+
 const desktopNavLink = ({ isActive }: { isActive: boolean }) =>
   `text-xs font-semibold tracking-widest transition hover:text-[#0056b3] ${
     isActive ? 'text-[#0056b3]' : 'text-neutral-600'
@@ -17,7 +19,9 @@ const mobileNavAnchorClass =
   'block border-b border-neutral-100 py-3.5 text-xs font-semibold tracking-widest text-neutral-600 transition hover:text-[#0056b3]'
 
 export default function Navbar() {
+  const [isLogged, setLogged] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const location = useLocation()
   const [pathSynced, setPathSynced] = useState(location.pathname)
 
@@ -25,6 +29,13 @@ export default function Navbar() {
     setPathSynced(location.pathname)
     setMenuOpen(false)
   }
+
+  useEffect(() => {
+    setLogged(!!getUserProfile())
+    const sync = () => setLogged(!!getUserProfile())
+    window.addEventListener('storage', sync)
+    return () => window.removeEventListener('storage', sync)
+  }, [])
 
   useEffect(() => {
     if (!menuOpen) return
@@ -61,19 +72,66 @@ export default function Navbar() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
-          <Link
-            to="/login"
-            className="touch-manipulation rounded-md border border-neutral-300 bg-white px-2.5 py-2 text-xs font-semibold text-[#003d82] transition hover:border-neutral-400 sm:px-4 sm:text-sm"
-          >
-            Ingresar
-          </Link>
-          <Link
-            to="/register"
-            className="touch-manipulation rounded-md bg-[#0056b3] px-2.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#004a9a] sm:px-4 sm:text-sm"
-          >
-            Registrarse
-          </Link>
+          {isLogged ? (
+            /* --- DISEÑO LOGUEADO CON DROPDOWN --- */
+            <div className="relative">
+              <button
+                onClick={() => setUserMenuOpen((o) => !o)}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-[#003d82] transition hover:bg-neutral-50 focus:outline-none shadow-sm"
+              >
+                {/* Icono de Personita */}
+                <svg className="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+              </button>
 
+              {/* Menú Desplegable */}
+              {userMenuOpen && (
+                <>
+                  {/* Overlay transparente para cerrar al hacer clic fuera */}
+                  <div className="fixed inset-0 z-10" onClick={() => setUserMenuOpen(false)}></div>
+                  
+                  <div className="absolute right-0 mt-2 w-48 overflow-hidden rounded-md border border-neutral-200 bg-white shadow-lg z-20">
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="block px-4 py-3 text-sm font-medium text-[#003d82] hover:bg-neutral-50 border-b border-neutral-100"
+                    >
+                      Ver perfil
+                    </Link>
+                    <button
+                      onClick={() => { 
+                        clearUserProfile(); 
+                        setLogged(false); 
+                        setUserMenuOpen(false);
+                      }}
+                      className="block w-full text-left px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition"
+                    >
+                      Cerrar sesión
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            /* --- DISEÑO NO LOGUEADO (BOTONES ORIGINALES) --- */
+            <>
+              <Link
+                to="/login"
+                className="touch-manipulation rounded-md border border-neutral-300 bg-white px-2.5 py-2 text-xs font-semibold text-[#003d82] transition hover:border-neutral-400 sm:px-4 sm:text-sm"
+              >
+                Ingresar
+              </Link>
+              <Link
+                to="/register"
+                className="touch-manipulation rounded-md bg-[#0056b3] px-2.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#004a9a] sm:px-4 sm:text-sm"
+              >
+                Registrarse
+              </Link>
+            </>
+          )}
+
+          {/* BOTÓN MENÚ MÓVIL (HAMBURGUESA) */}
           <button
             type="button"
             className="touch-manipulation flex size-10 items-center justify-center rounded-md border border-neutral-200 bg-white text-neutral-700 md:hidden"
@@ -83,11 +141,11 @@ export default function Navbar() {
             onClick={() => setMenuOpen((o) => !o)}
           >
             {menuOpen ? (
-              <svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
               </svg>
             ) : (
-              <svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
               </svg>
             )}

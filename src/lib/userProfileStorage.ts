@@ -1,29 +1,21 @@
-export type StoredUserProfile = {
-  fullName: string
-  email: string
-}
+export function getUserProfile(): any {
+  try{
+    const userLog = localStorage.getItem('user')
+    return userLog
+  }catch(err){
+    console.error('Error al consultar al localStorage:', err)
 
-export const USER_PROFILE_KEY = 'turnero_user_profile'
-
-export function getUserProfile(): StoredUserProfile | null {
-  try {
-    const raw = localStorage.getItem(USER_PROFILE_KEY)
-    if (!raw) return null
-    const p = JSON.parse(raw) as StoredUserProfile
-    if (typeof p.fullName !== 'string' || typeof p.email !== 'string') return null
-    return { fullName: p.fullName.trim(), email: p.email.trim() }
-  } catch {
-    return null
   }
 }
 
-export function saveUserProfile(p: StoredUserProfile): void {
-  localStorage.setItem(
-    USER_PROFILE_KEY,
-    JSON.stringify({ fullName: p.fullName.trim(), email: p.email.trim() }),
-  )
+export function saveUserProfile(result: any): void {
+  localStorage.setItem('token', result.access_token)
+  localStorage.setItem('user', JSON.stringify({name: result.user.nombre, rol: result.user.rol}))
+  window.dispatchEvent(new Event('storage')) //Esta linea es para que se refresque automaticamente el navbar al haber un nuevo logeo
 }
 
 export function clearUserProfile(): void {
-  localStorage.removeItem(USER_PROFILE_KEY)
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+  window.dispatchEvent(new Event('storage'))
 }
