@@ -264,7 +264,7 @@ export default function DashboardsUser() {
   const navigate = useNavigate()
   const [mainTab, setMainTab] = useState<'proximos' | 'historial'>('proximos')
   const [activeSection, setActiveSection] = useState<'turnos' | 'perfil'>('turnos')
-  const [userName, setUserName] = useState(() => getUserProfile()?.fullName ?? 'Invitado')
+  const [userName, setUserName] = useState(() => getUserProfile().name ?? 'Invitado')
 
   function handleLogout() {
     clearUserProfile()
@@ -272,7 +272,7 @@ export default function DashboardsUser() {
   }
 
   function handleProfileUpdated() {
-    setUserName(getUserProfile()?.fullName ?? 'Invitado')
+    setUserName(getUserProfile.name ?? 'Invitado')
   }
 
   return (
@@ -285,10 +285,6 @@ export default function DashboardsUser() {
           >
             <ScissorsLogo className="h-6 w-6" />
           </span>
-          <div>
-            <p className="text-base font-bold leading-tight text-neutral-900">Barbería Pro</p>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-400">Dashboard</p>
-          </div>
         </div>
 
         <nav className="mt-10 flex flex-1 flex-col gap-1">
@@ -304,18 +300,9 @@ export default function DashboardsUser() {
             label="Perfil"
             onClick={() => setActiveSection('perfil')}
           />
-          <SidebarNavItem icon={HistoryIcon} label="Mis Consumos" />
-          <SidebarNavItem icon={GearIcon} label="Preferencias" />
+          {/* <SidebarNavItem icon={HistoryIcon} label="Mis Consumos" />
+          <SidebarNavItem icon={GearIcon} label="Preferencias" /> */}
         </nav>
-
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="mt-auto flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
-        >
-          <LogOutIcon className="h-5 w-5 shrink-0" />
-          Cerrar sesión
-        </button>
       </aside>
 
       <div className="flex min-h-screen flex-1 flex-col md:pl-60 lg:pl-64">

@@ -1,7 +1,7 @@
 export function getUserProfile(): any {
   try{
     const userLog = localStorage.getItem('user')
-    return userLog
+    return userLog ? JSON.parse(userLog) : null
   }catch(err){
     console.error('Error al consultar al localStorage:', err)
 
