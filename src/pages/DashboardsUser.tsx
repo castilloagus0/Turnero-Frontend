@@ -278,16 +278,8 @@ export default function DashboardsUser() {
   return (
     <div className="flex min-h-screen bg-neutral-100/80 text-neutral-800">
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r border-neutral-200/80 bg-white px-4 py-6 shadow-sm md:flex lg:w-64">
-        <div className="flex items-center gap-3 px-1">
-          <span
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white shadow-sm"
-            style={{ backgroundColor: PRIMARY }}
-          >
-            <ScissorsLogo className="h-6 w-6" />
-          </span>
-        </div>
-
-        <nav className="mt-10 flex flex-1 flex-col gap-1">
+    
+        <nav className="mt-25 flex flex-1 flex-col gap-1">
           <SidebarNavItem
             active={activeSection === 'turnos'}
             icon={GridIcon}
