@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AuthPageShell, { authFieldClass, authLabelClass } from '../components/AuthPageShell'
-import { getUserProfile, saveUserProfile } from '../lib/userProfileStorage'
+import { saveUserProfile } from '../lib/userProfileStorage'
 import { login } from '../service/auth.service'
 
 export default function Login() {
@@ -18,8 +18,9 @@ export default function Login() {
 
     try {
       const loginUser = await login(email, password)
+      console.log(loginUser)
       saveUserProfile(loginUser) //Llamo al metodo que almacena las credenciales en el localStorage.
-      navigate('/user-dashboard')
+      navigate(loginUser.user.rol === 'barbero' || loginUser.user.rol === 'admin' ? '/admin-dashboard' : '/user-dashboard')
     } catch {
       setError('Error al ingresar. Intentá de nuevo.')
     }

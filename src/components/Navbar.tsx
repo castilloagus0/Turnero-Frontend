@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 
 import { Logo } from '../utils/logo'
 
@@ -23,6 +23,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
   const [pathSynced, setPathSynced] = useState(location.pathname)
 
   if (location.pathname !== pathSynced) {
@@ -101,9 +102,10 @@ export default function Navbar() {
                     </Link>
                     <button
                       onClick={() => { 
-                        clearUserProfile(); 
-                        setLogged(false); 
-                        setUserMenuOpen(false);
+                        clearUserProfile()
+                        setLogged(false)
+                        setUserMenuOpen(false)
+                        navigate('/')
                       }}
                       className="block w-full text-left px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition"
                     >

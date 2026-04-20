@@ -4,11 +4,16 @@ import { useEffect, useMemo, useState } from 'react'
 import { getServicios } from '../service/servicios.service'
 import { getBarberos } from '../service/barbero.service'
 import { getHorarios } from '../service/horarios.service'
+import { getTipoPagos } from '../service/tipoPagos.service'
 
 // Interfaces
 import { Horarios } from '../interface/horarios.interface'
 import { Barbero } from '../interface/barbero.interface'
 import { Servicios } from '../interface/servicios.interface'
+import { tipoPagos } from '../interface/tipoPagos.interface'
+
+// Assets
+import mercadoPagoIcon from '../assets/mercadoPago.webp'
 
 const WEEKDAYS = ['DOM', 'LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB'] as const
 
@@ -75,10 +80,12 @@ export default function CreateTurno() {
   const [services, setServices] = useState<Servicios[]>([])
   const [barbers, setBarbers] = useState<Barbero[]>([])
   const [horarios, setHorarios] = useState<Horarios[]>([])
+  const [tipoPagos, setTipoPagos] = useState<tipoPagos[]>([])
 
   const [serviceId, setServiceId] = useState<string>('')
   const [barberId, setBarberId] = useState<string>('')
   const [horarioId, setHorarioId] = useState<string>('')
+  const [paymentId, setPaymentId] = useState<string>('')
 
   useEffect(() => {
     getServicios()
@@ -102,6 +109,14 @@ export default function CreateTurno() {
     getHorarios()
       .then((data: Horarios[]) => {
         setHorarios(data)
+      })
+      .catch(() => { })
+  }, [])
+
+  useEffect(() => {
+    getTipoPagos()
+      .then((data: tipoPagos[]) => {
+        setTipoPagos(data)
       })
       .catch(() => { })
   }, [])
@@ -145,7 +160,13 @@ export default function CreateTurno() {
     ? `${service.nombre} con ${barber.nombre} ${barber.apellido} el ${summaryDate}, ${formatSlotLabel(horario.horaInicio)}`
     : ''
 
-  const isComplete = !!serviceId && !!barberId && !!horarioId
+  const isComplete = !!serviceId && !!barberId && !!horarioId && !!paymentId
+
+  // Detect which payment option is Mercado Pago by name (case-insensitive)
+  const isMercadoPago = (nombre: string) =>
+    nombre.toLowerCase().includes('mercado')
+
+  const selectedPayment = tipoPagos.find((p) => p.id === paymentId)
 
   function shiftMonth(delta: number) {
     const d = new Date(calYear, calMonth + delta, 1)
@@ -200,7 +221,7 @@ export default function CreateTurno() {
                 <span className="font-semibold text-neutral-900">Selección de Servicio</span>
               </div>
               <span className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
-                Paso 1 de 3
+                Paso 1 de 4
               </span>
             </div>
             <div className="mt-4 h-2 overflow-hidden rounded-full bg-neutral-200">
@@ -389,11 +410,73 @@ export default function CreateTurno() {
           </section>
         </div>
 
+        {/* Método de Pago */}
+        <section className="mt-12 mb-4">
+          <h2 className="mb-4 text-lg font-semibold text-neutral-900">5. Método de Pago</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {tipoPagos.length === 0
+              ? (
+                <p className="text-sm text-neutral-400">Cargando métodos de pago...</p>
+              )
+              : tipoPagos.map((p) => {
+                const sel = p.id === paymentId
+                const esMp = isMercadoPago(p.nombre)
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setPaymentId(p.id)}
+                    className={`group relative flex items-center gap-4 rounded-2xl border bg-white p-5 text-left shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] ${sel
+                      ? 'border-[#1d6bff] ring-1 ring-[#1d6bff]'
+                      : 'border-neutral-100'
+                      }`}
+                  >
+                    {sel && (
+                      <span className="absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-[#1d6bff] text-white shadow-md">
+                        <CheckIcon className="h-4 w-4" />
+                      </span>
+                    )}
+
+                    {/* Icon */}
+                    {esMp ? (
+                      <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#009ee3]/10 p-1">
+                        <img
+                          src={mercadoPagoIcon}
+                          alt="Mercado Pago"
+                          className="h-full w-full object-contain"
+                        />
+                      </span>
+                    ) : (
+                      <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                        <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                          <rect x="2" y="6" width="20" height="13" rx="2" />
+                          <path d="M2 10h20" />
+                          <circle cx="12" cy="15" r="1.5" fill="currentColor" stroke="none" />
+                        </svg>
+                      </span>
+                    )}
+
+                    {/* Text */}
+                    <div>
+                      <p className="font-semibold text-neutral-900">{p.nombre}</p>
+                      <p className="mt-0.5 text-sm text-neutral-500">
+                        {esMp
+                          ? 'Paga online de forma segura'
+                          : 'Abonás directamente en el local'}
+                      </p>
+                    </div>
+                  </button>
+                )
+              })
+            }
+          </div>
+        </section>
+
         {/* Resumen */}
         <div
           className={`mt-12 rounded-2xl border bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-300 md:flex md:items-center md:justify-between md:gap-6 md:p-6 ${isComplete
-              ? 'border-neutral-100 opacity-100'
-              : 'border-neutral-100 opacity-40 pointer-events-none select-none'
+            ? 'border-neutral-100 opacity-100'
+            : 'border-neutral-100 opacity-40 pointer-events-none select-none'
             }`}
         >
           <div className="flex flex-1 gap-4">
@@ -403,6 +486,11 @@ export default function CreateTurno() {
             <div>
               <p className="font-bold text-neutral-900">Resumen de tu Turno</p>
               <p className="mt-1 text-sm text-neutral-500 md:text-base">{summaryLine}</p>
+              {selectedPayment && (
+                <p className="mt-1 text-xs font-medium text-neutral-400">
+                  Pago: {selectedPayment.nombre}
+                </p>
+              )}
             </div>
           </div>
           <div className="mt-5 flex flex-col items-stretch gap-4 sm:flex-row sm:items-center md:mt-0 md:shrink-0">
@@ -418,8 +506,8 @@ export default function CreateTurno() {
               type="button"
               disabled={!isComplete}
               className={`inline-flex items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-sm font-semibold text-white shadow-md transition ${isComplete
-                  ? 'bg-[#1d6bff] hover:bg-[#155eea] cursor-pointer'
-                  : 'bg-neutral-300 cursor-not-allowed'
+                ? 'bg-[#1d6bff] hover:bg-[#155eea] cursor-pointer'
+                : 'bg-neutral-300 cursor-not-allowed'
                 }`}
             >
               Confirmar Turno

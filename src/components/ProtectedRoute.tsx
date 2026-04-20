@@ -1,19 +1,21 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { getUserProfile } from '../lib/userProfileStorage'
 
 type ProtectedRouteProps = {
-  userRole: string
   allowedRoles?: string[]
 }
 
-/**
- * Layout route: renders <Outlet /> si userRole está en allowedRoles; si no, redirige a /login.
- */
-export default function ProtectedRoute({ userRole, allowedRoles = [] }: ProtectedRouteProps) {
+export default function ProtectedRoute({ allowedRoles = [] }: ProtectedRouteProps) {
   const location = useLocation()
-  const allowed = allowedRoles.includes(userRole)
+  const profile = getUserProfile()
+  const userRole = profile?.rol ?? null
 
-  if (!allowed) {
+  if (userRole === null) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  }
+
+  if (!allowedRoles.includes(userRole)) {
+    return <Navigate to="/" replace />
   }
 
   return <Outlet />
