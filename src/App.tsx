@@ -12,10 +12,9 @@ import Contact from './pages/Contact'
 import CreateTurno from './pages/CreateTurno'
 import DashboardsUser from './pages/DashboardsUser'
 import AdminDashboard from './pages/AdminDashboard'
+import { ResultPayment } from './pages/ReturnPayment'
 
 function App() {
-
-
   return (
     <BrowserRouter>
       <Routes>
@@ -31,6 +30,7 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={['user']} />}>
             <Route path="/user-dashboard" element={<DashboardsUser />} />
             <Route path="/create-turno" element={<CreateTurno />} />
+            <Route path="/return-payment" element={<ResultPayment />} />
           </Route>
 
           {/* --- Rutas Protegidas: ADMIN --- */}

@@ -5,6 +5,7 @@ import { getServicios } from '../service/servicios.service'
 import { getBarberos } from '../service/barbero.service'
 import { getHorarios } from '../service/horarios.service'
 import { getTipoPagos } from '../service/tipoPagos.service'
+import { createOrder } from '../service/pago.service'
 
 // Interfaces
 import { Horarios } from '../interface/horarios.interface'
@@ -121,6 +122,7 @@ export default function CreateTurno() {
       .catch(() => { })
   }, [])
 
+
   const morningHorarios = horarios.filter((h) => {
     const hour = parseInt(h.horaInicio.split(':')[0], 10)
     return hour < 12
@@ -199,6 +201,20 @@ export default function CreateTurno() {
   function isSelectedCell(cell: CalendarCell): boolean {
     if (cell.inMonth !== 'current') return false
     return selectedYmd.y === calYear && selectedYmd.m === calMonth && selectedYmd.d === cell.day
+  }
+
+  async function handleConfirmarTurno() {
+    const userId = localStorage.getItem('userId') ?? ''
+    if (!userId) {
+      console.error('No se encontró el userId en localStorage')
+      return
+    }
+    try {
+      const response = await createOrder(userId, serviceId.toString(), '0')
+      window.location.href = response.init_point
+    } catch (error) {
+      console.error('Error al crear la preferencia de pago:', error)
+    }
   }
 
   return (
@@ -509,6 +525,7 @@ export default function CreateTurno() {
                 ? 'bg-[#1d6bff] hover:bg-[#155eea] cursor-pointer'
                 : 'bg-neutral-300 cursor-not-allowed'
                 }`}
+              onClick={handleConfirmarTurno}
             >
               Confirmar Turno
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5">
