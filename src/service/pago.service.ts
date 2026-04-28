@@ -13,3 +13,14 @@ export async function createOrder(usuarioId: string, servicioId: string, discoun
         throw error
     }
 }
+
+
+export async function updatePaymentStatus(paymentId: string, status: string) {
+    try {
+        const response = await axios.post(`${import.meta.env.VITE_URL_API}payment/update-status`, { paymentId, status })
+        return response.data
+    } catch (error: any) {
+        console.error('Error al actualizar el estado de pago', error)
+        throw error
+    }
+}
