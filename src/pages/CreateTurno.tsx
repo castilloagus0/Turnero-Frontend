@@ -59,6 +59,28 @@ function buildCalendar(year: number, month: number): CalendarCell[] {
   return cells
 }
 
+function startOfDay(d: Date): Date {
+  const x = new Date(d)
+  x.setHours(0, 0, 0, 0)
+  return x
+}
+
+function isSameCalendarDay(ymd: { y: number; m: number; d: number }, date: Date): boolean {
+  return ymd.y === date.getFullYear() && ymd.m === date.getMonth() && ymd.d === date.getDate()
+}
+
+/** True si el día elegido es "hoy" y el inicio del turno ya ocurrió (hora local). */
+function isHorarioInPastForSelectedDate(
+  ymd: { y: number; m: number; d: number },
+  horaInicio: string,
+  at: Date,
+): boolean {
+  if (!isSameCalendarDay(ymd, at)) return false
+  const [hh, mm] = horaInicio.split(':').map((x) => Number(x))
+  const start = new Date(ymd.y, ymd.m, ymd.d, hh, mm ?? 0, 0, 0)
+  return start.getTime() < at.getTime()
+}
+
 function CheckIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -122,6 +144,11 @@ export default function CreateTurno() {
       .catch(() => { })
   }, [])
 
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 30_000)
+    return () => clearInterval(id)
+  }, [])
 
   const morningHorarios = horarios.filter((h) => {
     const hour = parseInt(h.horaInicio.split(':')[0], 10)
@@ -138,6 +165,10 @@ export default function CreateTurno() {
     return { year: d.getFullYear(), month: d.getMonth() }
   }, [])
 
+  const todayStart = useMemo(() => startOfDay(new Date()), [])
+  const minYear = todayStart.getFullYear()
+  const minMonth = todayStart.getMonth()
+
   const [calYear, setCalYear] = useState(initialCal.year)
   const [calMonth, setCalMonth] = useState(initialCal.month)
   const [selectedYmd, setSelectedYmd] = useState<{ y: number; m: number; d: number }>(() => {
@@ -148,6 +179,14 @@ export default function CreateTurno() {
   const service = services.find((s) => s.id === serviceId)
   const barber = barbers.find((b) => b.id === barberId)
   const horario = horarios.find((h) => h.id === horarioId)
+
+  useEffect(() => {
+    if (!horarioId) return
+    const h = horarios.find((x) => x.id === horarioId)
+    if (h && isHorarioInPastForSelectedDate(selectedYmd, h.horaInicio, now)) {
+      setHorarioId('')
+    }
+  }, [selectedYmd, horarioId, horarios, now])
 
   const grid = useMemo(() => buildCalendar(calYear, calMonth), [calYear, calMonth])
 
@@ -162,7 +201,27 @@ export default function CreateTurno() {
     ? `${service.nombre} con ${barber.nombre} ${barber.apellido} el ${summaryDate}, ${formatSlotLabel(horario.horaInicio)}`
     : ''
 
-  const isComplete = !!serviceId && !!barberId && !!horarioId && !!paymentId
+  const selectedHorarioPast = horario
+    ? isHorarioInPastForSelectedDate(selectedYmd, horario.horaInicio, now)
+    : false
+  const isComplete = !!serviceId && !!barberId && !!horarioId && !selectedHorarioPast && !!paymentId
+
+  function onPickHorario(h: Horarios) {
+    if (isHorarioInPastForSelectedDate(selectedYmd, h.horaInicio, now)) return
+    setHorarioId(h.id)
+  }
+
+  function horarioSlotClassName(h: Horarios): string {
+    const base = 'rounded-xl border px-4 py-2.5 text-sm font-medium transition'
+    const unavailable = isHorarioInPastForSelectedDate(selectedYmd, h.horaInicio, now)
+    if (unavailable) {
+      return `${base} border-neutral-200 text-neutral-400 bg-neutral-100/90 cursor-not-allowed`
+    }
+    if (horarioId === h.id) {
+      return `${base} border-[#1d6bff] bg-[#e8f1ff] text-[#1d6bff]`
+    }
+    return `${base} border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300`
+  }
 
   // Detect which payment option is Mercado Pago by name (case-insensitive)
   const isMercadoPago = (nombre: string) =>
@@ -170,13 +229,43 @@ export default function CreateTurno() {
 
   const selectedPayment = tipoPagos.find((p) => p.id === paymentId)
 
+  const canGoPrevMonth = !(calYear === minYear && calMonth === minMonth)
+
   function shiftMonth(delta: number) {
     const d = new Date(calYear, calMonth + delta, 1)
-    setCalYear(d.getFullYear())
-    setCalMonth(d.getMonth())
+    const ny = d.getFullYear()
+    const nm = d.getMonth()
+    const isBeforeMin = ny < minYear || (ny === minYear && nm < minMonth)
+    if (isBeforeMin) {
+      setCalYear(minYear)
+      setCalMonth(minMonth)
+      return
+    }
+    setCalYear(ny)
+    setCalMonth(nm)
+  }
+
+  function dateForCell(cell: CalendarCell): Date {
+    if (cell.inMonth === 'current') return new Date(calYear, calMonth, cell.day)
+    if (cell.inMonth === 'prev') {
+      const prevM = calMonth - 1
+      const prevY = prevM < 0 ? calYear - 1 : calYear
+      const m = prevM < 0 ? 11 : prevM
+      return new Date(prevY, m, cell.day)
+    }
+    const nextM = calMonth + 1
+    const nextY = nextM > 11 ? calYear + 1 : calYear
+    const m = nextM > 11 ? 0 : nextM
+    return new Date(nextY, m, cell.day)
+  }
+
+  function isUnavailableCell(cell: CalendarCell): boolean {
+    const dt = startOfDay(dateForCell(cell))
+    return dt < todayStart
   }
 
   function onPickDay(cell: CalendarCell) {
+    if (isUnavailableCell(cell)) return
     if (cell.inMonth === 'prev') {
       const prevM = calMonth - 1
       const prevY = prevM < 0 ? calYear - 1 : calYear
@@ -267,7 +356,7 @@ export default function CreateTurno() {
                     </span>
                   )}
                   {s.imagen && (
-                    <div className="aspect-[4/3] overflow-hidden bg-neutral-100">
+                    <div className="aspect-4/3 overflow-hidden bg-neutral-800">
                       <img
                         src={s.imagen}
                         alt={s.descripcion}
@@ -328,7 +417,8 @@ export default function CreateTurno() {
                   <button
                     type="button"
                     onClick={() => shiftMonth(-1)}
-                    className="rounded-lg p-2 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
+                    disabled={!canGoPrevMonth}
+                    className={`rounded-lg p-2 ${canGoPrevMonth ? 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800' : 'text-neutral-300 cursor-not-allowed'}`}
                     aria-label="Mes anterior"
                   >
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
@@ -356,12 +446,21 @@ export default function CreateTurno() {
                 {grid.map((cell, i) => {
                   const muted = cell.inMonth !== 'current'
                   const selected = isSelectedCell(cell)
+                  const unavailable = isUnavailableCell(cell)
+                  const dayClass = unavailable
+                    ? 'text-neutral-400  cursor-not-allowed pointer-events-none'
+                    : selected
+                      ? 'bg-[#1d6bff] text-white hover:bg-[#155eea]'
+                      : muted
+                        ? 'text-neutral-300'
+                        : 'text-neutral-800 hover:bg-neutral-100'
                   return (
                     <button
                       key={`${cell.inMonth}-${cell.day}-${i}`}
                       type="button"
                       onClick={() => onPickDay(cell)}
-                      className={`flex h-10 items-center justify-center rounded-full text-sm font-medium transition ${muted ? 'text-neutral-300' : 'text-neutral-800 hover:bg-neutral-100'} ${selected ? 'bg-[#1d6bff] text-white hover:bg-[#155eea]' : ''}`}
+                      disabled={unavailable}
+                      className={`flex h-10 items-center justify-center rounded-full text-sm font-medium transition ${dayClass}`}
                     >
                       {cell.day}
                     </button>
@@ -385,11 +484,9 @@ export default function CreateTurno() {
                       <button
                         key={h.id}
                         type="button"
-                        onClick={() => setHorarioId(h.id)}
-                        className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition ${horarioId === h.id
-                          ? 'border-[#1d6bff] bg-[#e8f1ff] text-[#1d6bff]'
-                          : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300'
-                          }`}
+                        disabled={isHorarioInPastForSelectedDate(selectedYmd, h.horaInicio, now)}
+                        onClick={() => onPickHorario(h)}
+                        className={horarioSlotClassName(h)}
                       >
                         {formatSlotLabel(h.horaInicio)}
                       </button>
@@ -407,11 +504,9 @@ export default function CreateTurno() {
                       <button
                         key={h.id}
                         type="button"
-                        onClick={() => setHorarioId(h.id)}
-                        className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition ${horarioId === h.id
-                          ? 'border-[#1d6bff] bg-[#e8f1ff] text-[#1d6bff]'
-                          : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300'
-                          }`}
+                        disabled={isHorarioInPastForSelectedDate(selectedYmd, h.horaInicio, now)}
+                        onClick={() => onPickHorario(h)}
+                        className={horarioSlotClassName(h)}
                       >
                         {formatSlotLabel(h.horaInicio)}
                       </button>
@@ -528,7 +623,7 @@ export default function CreateTurno() {
               onClick={handleConfirmarTurno}
             >
               Confirmar Turno
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg className="ml-0.5 h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
