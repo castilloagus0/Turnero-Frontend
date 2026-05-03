@@ -12,6 +12,7 @@ import { Horarios } from '../interface/horarios.interface'
 import { Barbero } from '../interface/barbero.interface'
 import { Servicios } from '../interface/servicios.interface'
 import { tipoPagos } from '../interface/tipoPagos.interface'
+import { CreateTurnoInterface } from '../interface/createTurno.interface'
 
 // Assets
 import mercadoPagoIcon from '../assets/mercadoPago.webp'
@@ -299,6 +300,19 @@ export default function CreateTurno() {
       return
     }
     try {
+      const fecha = new Date(selectedYmd.y, selectedYmd.m, selectedYmd.d).toISOString().slice(0, 10)
+      localStorage.setItem(
+        'pendingTurno',
+        JSON.stringify({
+          fecha,
+          horarioId,
+          usuarioId: userId,
+          servicioId: serviceId.toString(),
+          tipoPagoId: paymentId.toString(),
+          barberoId: barberId.toString(),
+        })
+      )
+
       const response = await createOrder(userId, serviceId.toString(), '0')
       window.location.href = response.init_point
     } catch (error) {
