@@ -13,6 +13,7 @@ import CreateTurno from './pages/CreateTurno'
 import DashboardsUser from './pages/DashboardsUser'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminAnalytics from './pages/AdminAnalytics'
+import AdminTurnos from './pages/AdminTurnos'
 import { ResultPayment } from './pages/ReturnPayment'
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={['barbero' , 'admin'] } />}>
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/admin-analytics" element={<AdminAnalytics />} />
+            <Route path="/admin-turnos" element={<AdminTurnos />} />
           </Route>
 
           {/* --- Redirección por defecto --- */}
