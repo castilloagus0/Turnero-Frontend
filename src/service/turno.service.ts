@@ -1,10 +1,10 @@
 import axios from "axios";
 
-export async function createTurno(fecha: string, horarioId: number, usuarioId: number, servicioId: number, tipoPagoId: number, barberoId: number) {
+export async function createTurno(fecha: string, horarioId: number, usuarioId: number, servicioId: number, tipoPagoId: number, barberoId: number, preference_id: string) {
   try {
     const response = await axios.post(
       `${import.meta.env.VITE_URL_API}turno/createTurno`,
-      { fecha, horarioId, usuarioId, servicioId, tipoPagoId, barberoId },
+      { fecha, horarioId, usuarioId, servicioId, tipoPagoId, barberoId, preference_id },
     );
     return response.data;
   } catch (error: any) {

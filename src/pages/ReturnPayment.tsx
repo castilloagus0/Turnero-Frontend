@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { STATUS_CONFIG } from "../components/StatusConfig";
 import { CreateTurnoInterface } from "../interface/createTurno.interface";
@@ -28,11 +28,28 @@ function getAxiosMessage(err: unknown): string | undefined {
   return typeof m === "string" && m.length > 0 ? m : undefined;
 }
 
+function buildWhatsAppUrl(phoneRaw: string, message: string) {
+  const phone = phoneRaw.replace(/\D/g, "");
+  if (!phone) return "";
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+}
+
+function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <title>WhatsApp</title>
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.881 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+    </svg>
+  );
+}
+
 export function ResultPayment() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("unknown");
   const [visible, setVisible] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [createTurnoFailed, setCreateTurnoFailed] = useState(false);
   const [backendMessage, setBackendMessage] = useState<string | null>(null);
 
   /** Devuelve true si el backend confirma que ya existe un registro de pago para esa preferencia. */
@@ -73,7 +90,7 @@ export function ResultPayment() {
     [],
   );
 
-  const handleCreateTurno = useCallback(async (): Promise<{ message?: string } | void> => {
+  const handleCreateTurno = useCallback(async (preferenceId:string): Promise<{ message?: string } | void> => {
     const raw = localStorage.getItem("pendingTurno");
     if (!raw) {
       console.error("No se encontró pendingTurno en localStorage");
@@ -113,6 +130,7 @@ export function ResultPayment() {
         parseInt(pending.servicioId, 10),
         parseInt(pending.tipoPagoId, 10),
         parseInt(pending.barberoId, 10),
+        preferenceId
       )) as { message?: string };
       return createdTurno;
     } catch (e) {
@@ -135,16 +153,31 @@ export function ResultPayment() {
         }
 
         if (!shouldCreateTurnoAfterPaymentUpdate(paymentUpdate.status)) {
+          setCreateTurnoFailed(false);
           localStorage.removeItem("pendingTurno");
           sessionStorage.setItem(flowKey, "done");
           return;
         }
 
-        const turnoRes = await handleCreateTurno();
-        if (turnoRes?.message) {
-          setBackendMessage(turnoRes.message);
+        try {
+          setCreateTurnoFailed(false);
+          const turnoRes = await handleCreateTurno(preferenceId);
+          if (turnoRes?.message) {
+            setBackendMessage(turnoRes.message);
+          }
+          sessionStorage.setItem(flowKey, "done");
+        } catch (turnoErr) {
+          console.error("No se pudo crear el turno tras el pago aprobado", turnoErr);
+          const fromApi = getAxiosMessage(turnoErr);
+          if (fromApi) {
+            setBackendMessage(fromApi);
+          }
+          setCreateTurnoFailed(true);
+          sessionStorage.removeItem(flowKey);
+          window.alert(
+            "Tu pago se acreditó, pero hubo un error al confirmar el turno. Podés enviarnos un mensaje por WhatsApp para que te ayudemos.",
+          );
         }
-        sessionStorage.setItem(flowKey, "done");
       } catch (e) {
         console.error("Error en flujo de pago aprobado", e);
         sessionStorage.removeItem(flowKey);
@@ -154,6 +187,20 @@ export function ResultPayment() {
     },
     [statusPaymentExists, handleUpdatePaymentStatus, handleCreateTurno],
   );
+
+  const preferenceIdFromUrl = searchParams.get("preference_id") ?? "";
+
+  const whatsappLink = useMemo(() => {
+    const phone = import.meta.env.VITE_WHATSAPP_PHONE as string | undefined;
+    const msg = [
+      "Hola, mi pago con Mercado Pago fue aprobado pero no se pudo confirmar el turno automáticamente.",
+      preferenceIdFromUrl ? `ID de preferencia: ${preferenceIdFromUrl}.` : "",
+      "¿Me pueden ayudar a completar la reserva?",
+    ]
+      .filter(Boolean)
+      .join(" ");
+    return buildWhatsAppUrl(phone ?? "", msg);
+  }, [preferenceIdFromUrl]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -168,9 +215,11 @@ export function ResultPayment() {
 
       if (phase === "done") {
         setIsConfirming(false);
+        setCreateTurnoFailed(false);
       } else if (phase === "processing") {
         setIsConfirming(true);
       } else {
+        setCreateTurnoFailed(false);
         sessionStorage.setItem(flowKey, "processing");
         setIsConfirming(true);
         void runApprovedFlow(preferenceId, paymentId, status);
@@ -191,6 +240,8 @@ export function ResultPayment() {
   }, [runApprovedFlow]);
 
   const config = STATUS_CONFIG[paymentStatus];
+  const showTurnoFalloAyuda =
+    paymentStatus === "approved" && !isConfirming && createTurnoFailed;
 
   const handlePrimaryAction = () => {
     if (paymentStatus === "approved" || paymentStatus === "pending") {
@@ -237,11 +288,24 @@ export function ResultPayment() {
 
           <h1 className="text-3xl font-bold text-neutral-900 mb-2">{config.title}</h1>
           <p className={`text-base font-semibold mb-4 ${config.iconColor}`}>
-            {config.subtitle}
+            {showTurnoFalloAyuda ? "Tu pago está acreditado, pero falló la confirmación del turno." : config.subtitle}
           </p>
-          <p className="text-neutral-600 text-sm leading-relaxed mb-8">
-            {backendMessage ?? config.description}
-          </p>
+
+          {showTurnoFalloAyuda ? (
+            <div
+              role="alert"
+              className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-sm text-amber-950"
+            >
+              <p className="font-semibold">No pudimos crear tu turno automáticamente</p>
+              <p className="mt-1 text-amber-900/90">
+                Tu pago fue aprobado. Enviá un mensaje por WhatsApp con los datos de tu compra y te
+                ayudamos a completar la reserva.
+              </p>
+              {backendMessage ? (
+                <p className="mt-2 font-mono text-xs text-amber-900/80">{backendMessage}</p>
+              ) : null}
+            </div>
+          ) : null}
 
           <div className="flex flex-col gap-3">
             {paymentStatus === "approved" && isConfirming ? (
@@ -254,6 +318,18 @@ export function ResultPayment() {
                   Confirmando tu turno...
                 </p>
               </div>
+            ) : showTurnoFalloAyuda ? (
+              <a
+                href={whatsappLink || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] py-3.5 text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:bg-[#20bd5c] active:scale-95 ${
+                  !whatsappLink ? "pointer-events-none opacity-50" : ""
+                }`}
+              >
+                <WhatsAppIcon className="size-6 shrink-0 text-white" />
+                Enviar mensaje
+              </a>
             ) : (
               <button
                 type="button"
