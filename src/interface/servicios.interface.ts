@@ -1,5 +1,5 @@
 export interface Servicios {
-    id: string,
+    id: string | number,
     nombre: string,
     precio: string,
     duracionAproximada: number,

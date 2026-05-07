@@ -43,6 +43,7 @@ function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
+
 export function ResultPayment() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -245,7 +246,7 @@ export function ResultPayment() {
 
   const handlePrimaryAction = () => {
     if (paymentStatus === "approved" || paymentStatus === "pending") {
-      navigate("/dashboard");
+      navigate("/user-dashboard");
     } else if (paymentStatus === "failure") {
       navigate(-1);
     } else {

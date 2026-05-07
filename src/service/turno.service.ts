@@ -16,3 +16,20 @@ export async function createTurno(fecha: string, horarioId: number, usuarioId: n
     throw error;
   }
 }
+
+
+export async function getTurnoByUser(usuarioId: number, page: number, limit: number) {
+  try {
+    const response = await axios.get(
+      `${import.meta.env.VITE_URL_API}turno/user/${usuarioId}?page=${page}&limit=${limit}`,
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("Error al obtener el turno:", error);
+    if (error?.response) {
+      console.error("Status:", error.response.status);
+      console.error("Data:", JSON.stringify(error.response.data, null, 2));
+    }
+    throw error;
+  }
+}

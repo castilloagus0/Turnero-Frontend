@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import heroBarber from '../assets/hero-barber.png'
+import heroBarber from '../assets/slider1.webp'
 import Experiences from '../components/Experiences'
 import ScrollReveal from '../components/ScrollReveal'
 

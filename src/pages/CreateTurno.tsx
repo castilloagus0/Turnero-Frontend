@@ -12,7 +12,6 @@ import { Horarios } from '../interface/horarios.interface'
 import { Barbero } from '../interface/barbero.interface'
 import { Servicios } from '../interface/servicios.interface'
 import { tipoPagos } from '../interface/tipoPagos.interface'
-import { CreateTurnoInterface } from '../interface/createTurno.interface'
 
 // Assets
 import mercadoPagoIcon from '../assets/mercadoPago.webp'
@@ -124,7 +123,7 @@ export default function CreateTurno() {
     getBarberos()
       .then((data: Barbero[]) => {
         setBarbers(data)
-        if (data.length > 0) setBarberId(data[0].id)
+        if (data.length > 0) setBarberId(String(data[0].id))
       })
       .catch(() => { })
   }, [])
@@ -177,13 +176,13 @@ export default function CreateTurno() {
     return { y: d.getFullYear(), m: d.getMonth(), d: d.getDate() }
   })
 
-  const service = services.find((s) => s.id === serviceId)
-  const barber = barbers.find((b) => b.id === barberId)
-  const horario = horarios.find((h) => h.id === horarioId)
+  const service = services.find((s) => String(s.id) === serviceId)
+  const barber = barbers.find((b) => String(b.id) === barberId)
+  const horario = horarios.find((h) => String(h.id) === horarioId)
 
   useEffect(() => {
     if (!horarioId) return
-    const h = horarios.find((x) => x.id === horarioId)
+    const h = horarios.find((x) => String(x.id) === horarioId)
     if (h && isHorarioInPastForSelectedDate(selectedYmd, h.horaInicio, now)) {
       setHorarioId('')
     }
@@ -209,7 +208,7 @@ export default function CreateTurno() {
 
   function onPickHorario(h: Horarios) {
     if (isHorarioInPastForSelectedDate(selectedYmd, h.horaInicio, now)) return
-    setHorarioId(h.id)
+    setHorarioId(String(h.id))
   }
 
   function horarioSlotClassName(h: Horarios): string {
@@ -218,7 +217,7 @@ export default function CreateTurno() {
     if (unavailable) {
       return `${base} border-neutral-200 text-neutral-400 bg-neutral-100/90 cursor-not-allowed`
     }
-    if (horarioId === h.id) {
+    if (horarioId === String(h.id)) {
       return `${base} border-[#1d6bff] bg-[#e8f1ff] text-[#1d6bff]`
     }
     return `${base} border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300`
@@ -356,12 +355,12 @@ export default function CreateTurno() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {services.map((s) => {
-              const sel = s.id === serviceId
+              const sel = String(s.id) === serviceId
               return (
                 <button
                   key={s.id}
                   type="button"
-                  onClick={() => setServiceId(s.id)}
+                  onClick={() => setServiceId(String(s.id))}
                   className={`group relative overflow-hidden rounded-2xl border bg-white text-left shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] ${sel ? 'border-[#1d6bff] ring-1 ring-[#1d6bff]' : 'border-neutral-100'}`}
                 >
                   {sel && (
@@ -395,12 +394,12 @@ export default function CreateTurno() {
           <h2 className="mb-4 text-lg font-semibold text-neutral-900">2. Elige un Barbero</h2>
           <div className="flex flex-wrap gap-6 md:gap-8">
             {barbers.map((b) => {
-              const sel = b.id === barberId
+              const sel = String(b.id) === barberId
               return (
                 <button
                   key={b.id}
                   type="button"
-                  onClick={() => setBarberId(b.id)}
+                  onClick={() => setBarberId(String(b.id))}
                   className="flex w-[100px] flex-col items-center text-center"
                 >
                   <span className="relative">

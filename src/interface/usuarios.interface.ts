@@ -1,10 +1,10 @@
-export interface Barbero {
-    id: string | number,
+export interface Usuario{
+    id: number,
     nombre: string,
     apellido: string,
     email: string,
     telefono: string,
-    rol: string,
     nacimiento: string,
-    fechaRegistro?: string,
+    rol: string,
+    fechaRegistro: string
 }

@@ -1,5 +1,5 @@
 export interface Horarios {
-    id: string;
+    id: string | number;
     horaInicio: string;
     horaFin: string;
     activo: boolean;
