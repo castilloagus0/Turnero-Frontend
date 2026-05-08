@@ -35,6 +35,7 @@ function App() {
             <Route path="/return-payment" element={<ResultPayment />} />
           </Route>
 
+
           {/* --- Rutas Protegidas: ADMIN --- */}
           {/* Solo entra si el rol es exactamente 'admin' */}
           <Route element={<ProtectedRoute allowedRoles={['barbero' , 'admin'] } />}>
