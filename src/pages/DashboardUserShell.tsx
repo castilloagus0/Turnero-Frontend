@@ -2,7 +2,7 @@ import { type ComponentType, type ReactNode } from 'react'
 
 const PRIMARY = '#1D4ED8'
 
-export type DashboardUserSection = 'turnos' | 'perfil' | 'actividad'
+export type DashboardUserSection = 'turnos' | 'actividad'
 
 function ScissorsLogo({ className }: { className?: string }) {
   return (
@@ -25,25 +25,6 @@ function GridIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
       <path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z" />
-    </svg>
-  )
-}
-
-function UserIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      aria-hidden
-    >
-      <path
-        d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
     </svg>
   )
 }
@@ -114,12 +95,6 @@ export default function DashboardUserShell({
             label="Historial de Turnos"
             onClick={onNavigateActividad}
           />
-          <SidebarNavItem
-            active={activeSection === 'perfil'}
-            icon={UserIcon}
-            label="Perfil"
-            onClick={() => onSectionChange('perfil')}
-          />
         </nav>
       </aside>
 
@@ -144,7 +119,7 @@ export default function DashboardUserShell({
             </button>
           </div>
           <nav
-            className="mt-3 grid grid-cols-3 gap-1.5 border-t border-neutral-100 pt-3"
+            className="mt-3 grid grid-cols-2 gap-1.5 border-t border-neutral-100 pt-3"
             aria-label="Secciones del panel"
           >
             <button
@@ -168,17 +143,6 @@ export default function DashboardUserShell({
               }`}
             >
               Historial
-            </button>
-            <button
-              type="button"
-              onClick={() => onSectionChange('perfil')}
-              className={`rounded-lg py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-wide transition sm:text-xs ${
-                activeSection === 'perfil'
-                  ? 'bg-[#1D4ED8] text-white'
-                  : 'bg-neutral-100 text-neutral-600'
-              }`}
-            >
-              Perfil
             </button>
           </nav>
         </header>

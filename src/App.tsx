@@ -39,8 +39,11 @@ function App() {
           {/* Solo entra si el rol es exactamente 'admin' */}
           <Route element={<ProtectedRoute allowedRoles={['barbero' , 'admin'] } />}>
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin-analytics" element={<AdminAnalytics />} />
+            <Route path="/admin/analytics" element={<AdminAnalytics />} />
             <Route path="/admin-turnos" element={<AdminTurnos />} />
+            <Route path="/admin/turnos" element={<AdminTurnos />} />
           </Route>
 
           {/* --- Redirección por defecto --- */}

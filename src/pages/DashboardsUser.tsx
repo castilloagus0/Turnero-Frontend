@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import UserProfilePanel from '../components/UserProfilePanel'
 import { clearUserProfile, getUserProfile } from '../lib/userProfileStorage'
-import { getTurnoByUser } from '../service/turno.service'
+import { cancelarTurno, finalizarTurno, getTurnoByUser } from '../service/turno.service'
 import type { TurnosI } from '../interface/turnos.interface'
 import DashboardUserActividad from './DashboardUserActividad'
 import DashboardUserMisTurnos from './DashboardUserMisTurnos'
@@ -19,14 +18,34 @@ function PlusIcon({ className }: { className?: string }) {
   )
 }
 
+function getTurnoDateTime(turno: TurnosI): Date | null {
+  if (!turno.fecha || !turno.horario?.horaInicio) return null
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(turno.fecha)
+  if (!match) return null
+  const [, y, m, d] = match
+  const [h = '0', min = '0'] = String(turno.horario.horaInicio).split(':')
+  const date = new Date(Number(y), Number(m) - 1, Number(d), Number(h), Number(min), 0, 0)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+function shouldAutoFinalizeTurno(turno: TurnosI, now: Date): boolean {
+  if (isCompletedTurno(turno.estado) || isCancelledTurno(turno.estado)) return false
+  const turnoDateTime = getTurnoDateTime(turno)
+  if (!turnoDateTime) return false
+
+  // Se auto-finaliza solo cuando el turno ya llegó o pasó.
+  return now.getTime() > turnoDateTime.getTime()
+}
+
 export default function DashboardsUser() {
   const navigate = useNavigate()
   const [activeSection, setActiveSection] = useState<DashboardUserSection>('turnos')
   const [actividadMountKey, setActividadMountKey] = useState(0)
-  const [userName, setUserName] = useState(() => getUserProfile().name ?? 'Invitado')
+  const userName = getUserProfile().name ?? 'Invitado'
   const [turnos, setTurnos] = useState<TurnosI[]>([])
   const [turnosLoading, setTurnosLoading] = useState(false)
   const [turnosError, setTurnosError] = useState<string | null>(null)
+  const [currentDateTime, setCurrentDateTime] = useState(() => new Date())
 
   const userId = useMemo(() => {
     const raw = localStorage.getItem('userId')
@@ -34,41 +53,66 @@ export default function DashboardsUser() {
     return Number.isFinite(n) ? n : 0
   }, [])
 
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadTurnos() {
-      if (!userId) {
-        setTurnos([])
-        return
-      }
-
-      setTurnosLoading(true)
-      setTurnosError(null)
-      try {
-        const response = await getTurnoByUser(userId, 1, 50)
-        const list: TurnosI[] = Array.isArray(response)
-          ? response
-          : Array.isArray(response?.turnos)
-            ? response.turnos
-            : Array.isArray(response?.data)
-              ? response.data
-              : []
-
-        if (!cancelled) setTurnos(list)
-      } catch (e: unknown) {
-        const message = e instanceof Error ? e.message : 'No se pudieron cargar los turnos.'
-        if (!cancelled) setTurnosError(message)
-      } finally {
-        if (!cancelled) setTurnosLoading(false)
-      }
+  const loadTurnos = useCallback(async () => {
+    if (!userId) {
+      setTurnos([])
+      return
     }
 
-    loadTurnos()
-    return () => {
-      cancelled = true
+    setTurnosLoading(true)
+    setTurnosError(null)
+    try {
+      const response = await getTurnoByUser(userId, 1, 50)
+      const list: TurnosI[] = Array.isArray(response)
+        ? response
+        : Array.isArray(response?.turnos)
+          ? response.turnos
+          : Array.isArray(response?.data)
+            ? response.data
+            : []
+      setTurnos(list)
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'No se pudieron cargar los turnos.'
+      setTurnosError(message)
+    } finally {
+      setTurnosLoading(false)
     }
   }, [userId])
+
+  useEffect(() => {
+    let mounted = true
+    ;(async () => {
+      if (!mounted) return
+      setCurrentDateTime(new Date())
+      await loadTurnos()
+    })()
+    return () => {
+      mounted = false
+    }
+  }, [loadTurnos])
+
+  useEffect(() => {
+    if (!userId || turnos.length === 0) return
+
+    const now = currentDateTime
+    const toFinalize = turnos.filter((turno) => shouldAutoFinalizeTurno(turno, now))
+    if (toFinalize.length === 0) return
+
+    ;(async () => {
+      const results = await Promise.allSettled(
+        toFinalize.map((turno) => finalizarTurno(Number(turno.id))),
+      )
+      const finalizedAny = results.some((result) => result.status === 'fulfilled')
+      if (finalizedAny) {
+        await loadTurnos()
+      }
+    })()
+  }, [currentDateTime, loadTurnos, turnos, userId])
+
+  async function handleCancelarTurno(idTurno: number) {
+    await cancelarTurno(idTurno)
+    await loadTurnos()
+  }
 
   const proximosTurnos = useMemo(
     () =>
@@ -93,10 +137,6 @@ export default function DashboardsUser() {
     navigate('/create-turno')
   }
 
-  function handleProfileUpdated() {
-    setUserName(getUserProfile()?.name ?? 'Invitado')
-  }
-
   function navigateToActividad() {
     setActiveSection('actividad')
     setActividadMountKey((key) => key + 1)
@@ -113,11 +153,9 @@ export default function DashboardsUser() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl">Hola, {userName}</h1>
           <p className="mt-1 text-sm text-neutral-500 sm:text-base">
-            {activeSection === 'perfil'
-              ? 'Editá los datos de tu cuenta desde esta sección.'
-              : activeSection === 'actividad'
-                ? 'Consultá el historial de tus turnos con importes y detalles.'
-                : 'Bienvenido de nuevo a tu panel de gestión.'}
+            {activeSection === 'actividad'
+              ? 'Consultá el historial de tus turnos con importes y detalles.'
+              : 'Bienvenido de nuevo a tu panel de gestión.'}
           </p>
         </div>
         {activeSection === 'turnos' ? (
@@ -133,11 +171,7 @@ export default function DashboardsUser() {
         ) : null}
       </div>
 
-      {activeSection === 'perfil' ? (
-        <div className="mt-8 max-w-3xl">
-          <UserProfilePanel onProfileUpdated={handleProfileUpdated} />
-        </div>
-      ) : activeSection === 'actividad' ? (
+      {activeSection === 'actividad' ? (
         <DashboardUserActividad
           key={actividadMountKey}
           turnos={turnos}
@@ -150,6 +184,7 @@ export default function DashboardsUser() {
           historialTurnos={historialTurnos}
           turnosLoading={turnosLoading}
           turnosError={turnosError}
+          onCancelarTurno={handleCancelarTurno}
         />
       )}
     </DashboardUserShell>

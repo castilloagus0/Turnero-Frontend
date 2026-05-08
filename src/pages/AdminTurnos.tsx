@@ -55,6 +55,10 @@ export default function AdminTurnos() {
   const [state, setState] = useState<AsyncState>({ status: 'loading' })
   const [selectedStatus, setSelectedStatus] = useState<TurnoStatus | 'all'>('all')
   const [search, setSearch] = useState('')
+  const [selectedBarber, setSelectedBarber] = useState('all')
+  const [selectedService, setSelectedService] = useState('all')
+  const [selectedPayment, setSelectedPayment] = useState('all')
+  const [selectedDate, setSelectedDate] = useState('')
   const [selectedTurnoId, setSelectedTurnoId] = useState<number | null>(null)
   const turnos = state.status === 'success' ? state.data.turnos : []
 
@@ -79,13 +83,32 @@ export default function AdminTurnos() {
     }
   }, [])
 
+  const availableBarbers = useMemo(
+    () => [...new Set(turnos.map((turno) => turno.barbero).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es')),
+    [turnos],
+  )
+
+  const availableServices = useMemo(
+    () => [...new Set(turnos.map((turno) => turno.servicio).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es')),
+    [turnos],
+  )
+
+  const availablePaymentMethods = useMemo(
+    () => [...new Set(turnos.map((turno) => turno.medioPago).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es')),
+    [turnos],
+  )
+
   const filteredTurnos = useMemo(
     () =>
       turnos.filter((turno) => {
         const matchStatus = selectedStatus === 'all' || turno.status === selectedStatus
-        return matchStatus && matchesSearch(turno, search)
+        const matchBarber = selectedBarber === 'all' || turno.barbero === selectedBarber
+        const matchService = selectedService === 'all' || turno.servicio === selectedService
+        const matchPayment = selectedPayment === 'all' || turno.medioPago === selectedPayment
+        const matchDate = !selectedDate || turno.fecha.startsWith(selectedDate)
+        return matchStatus && matchBarber && matchService && matchPayment && matchDate && matchesSearch(turno, search)
       }),
-    [turnos, selectedStatus, search],
+    [turnos, selectedStatus, selectedBarber, selectedService, selectedPayment, selectedDate, search],
   )
 
   if (state.status === 'loading') {
@@ -176,6 +199,50 @@ export default function AdminTurnos() {
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Buscar cliente, barbero, servicio o pago..."
               className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none ring-[#2563EB]/20 transition focus:border-[#2563EB] focus:bg-white focus:ring-2 lg:max-w-md"
+            />
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <select
+              value={selectedBarber}
+              onChange={(event) => setSelectedBarber(event.target.value)}
+              className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-900 outline-none ring-[#2563EB]/20 transition focus:border-[#2563EB] focus:bg-white focus:ring-2"
+            >
+              <option value="all">Todos los barberos</option>
+              {availableBarbers.map((barbero) => (
+                <option key={barbero} value={barbero}>
+                  {barbero}
+                </option>
+              ))}
+            </select>
+            <select
+              value={selectedService}
+              onChange={(event) => setSelectedService(event.target.value)}
+              className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-900 outline-none ring-[#2563EB]/20 transition focus:border-[#2563EB] focus:bg-white focus:ring-2"
+            >
+              <option value="all">Todos los servicios</option>
+              {availableServices.map((service) => (
+                <option key={service} value={service}>
+                  {service}
+                </option>
+              ))}
+            </select>
+            <select
+              value={selectedPayment}
+              onChange={(event) => setSelectedPayment(event.target.value)}
+              className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-900 outline-none ring-[#2563EB]/20 transition focus:border-[#2563EB] focus:bg-white focus:ring-2"
+            >
+              <option value="all">Todos los pagos</option>
+              {availablePaymentMethods.map((paymentMethod) => (
+                <option key={paymentMethod} value={paymentMethod}>
+                  {paymentMethod}
+                </option>
+              ))}
+            </select>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(event) => setSelectedDate(event.target.value)}
+              className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-900 outline-none ring-[#2563EB]/20 transition focus:border-[#2563EB] focus:bg-white focus:ring-2"
             />
           </div>
 

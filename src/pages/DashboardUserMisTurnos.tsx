@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import type { TurnosI } from '../interface/turnos.interface'
 import type { AppointmentStatus } from './dashboardUserUtils'
-import { barberoDelTurno, formatDateLabel, formatTimeLabel, normalizeStatus } from './dashboardUserUtils'
+import {
+  barberoDelTurno,
+  formatDateLabel,
+  formatTimeLabel,
+  isCancelledTurno,
+  isCompletedTurno,
+  normalizeStatus,
+} from './dashboardUserUtils'
 
 function UserIcon({ className }: { className?: string }) {
   return (
@@ -63,6 +70,7 @@ type Props = {
   historialTurnos: TurnosI[]
   turnosLoading: boolean
   turnosError: string | null
+  onCancelarTurno: (idTurno: number) => void | Promise<void>
 }
 
 export default function DashboardUserMisTurnos({
@@ -70,11 +78,83 @@ export default function DashboardUserMisTurnos({
   historialTurnos,
   turnosLoading,
   turnosError,
+  onCancelarTurno,
 }: Props) {
   const [mainTab, setMainTab] = useState<'proximos' | 'historial'>('proximos')
+  const [cancellingId, setCancellingId] = useState<number | null>(null)
+  const [confirmCancelarId, setConfirmCancelarId] = useState<number | null>(null)
+  const [confirmCancelarError, setConfirmCancelarError] = useState<string | null>(null)
+
+  function openConfirmCancelar(turnoId: unknown) {
+    const id = Number(turnoId)
+    if (!Number.isFinite(id)) return
+    setConfirmCancelarId(id)
+    setConfirmCancelarError(null)
+  }
+
+  function closeConfirmCancelar() {
+    setConfirmCancelarId(null)
+    setConfirmCancelarError(null)
+  }
+
+  async function confirmCancelar() {
+    if (confirmCancelarId == null) return
+    const id = confirmCancelarId
+    setCancellingId(id)
+    try {
+      await onCancelarTurno(id)
+      setConfirmCancelarId(null)
+      setConfirmCancelarError(null)
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'No se pudo cancelar el turno.'
+      setConfirmCancelarError(message)
+    } finally {
+      setCancellingId(null)
+    }
+  }
 
   return (
     <>
+      {confirmCancelarId != null ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl">
+            <h3 className="text-base font-bold text-neutral-900">¿Desea cancelar este turno?</h3>
+            <p className="mt-2 text-sm text-neutral-500">
+              Esta acción cancelará el turno seleccionado.
+            </p>
+
+            {confirmCancelarError ? (
+              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                {confirmCancelarError}
+              </div>
+            ) : null}
+
+            <div className="mt-5 flex gap-2">
+              <button
+                type="button"
+                className="flex-1 rounded-xl border border-neutral-200 bg-white py-2.5 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50"
+                onClick={closeConfirmCancelar}
+                disabled={cancellingId === confirmCancelarId}
+              >
+                Volver
+              </button>
+              <button
+                type="button"
+                className="flex-1 rounded-xl border-2 border-red-200 bg-red-50 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                onClick={confirmCancelar}
+                disabled={cancellingId === confirmCancelarId}
+              >
+                {cancellingId === confirmCancelarId ? 'Cancelando...' : 'Cancelar turno'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <div className="mt-8 border-b border-neutral-200">
         <div className="flex gap-8">
           <button
@@ -140,18 +220,30 @@ export default function DashboardUserMisTurnos({
                     </div>
                   </div>
                   <div className="mt-4 flex gap-2">
+                    {(() => {
+                      const actionsDisabled = isCompletedTurno(turno.estado) || isCancelledTurno(turno.estado)
+                      const isCancelling = cancellingId === Number(turno.id)
+                      const isConfirming = confirmCancelarId === Number(turno.id)
+                      return (
+                        <>
                     <button
                       type="button"
                       className="flex-1 rounded-xl border border-neutral-200 bg-white py-2.5 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50"
+                      disabled={actionsDisabled || isCancelling || isConfirming}
                     >
                       Reagendar
                     </button>
                     <button
                       type="button"
                       className="flex-1 rounded-xl border-2 border-red-200 bg-white py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+                      onClick={() => openConfirmCancelar(turno.id)}
+                      disabled={actionsDisabled || isCancelling || isConfirming}
                     >
-                      Cancelar
+                      {isCancelling ? 'Cancelando...' : 'Cancelar'}
                     </button>
+                        </>
+                      )
+                    })()}
                   </div>
                 </div>
               </article>

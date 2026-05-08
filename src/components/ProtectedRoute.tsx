@@ -8,13 +8,14 @@ type ProtectedRouteProps = {
 export default function ProtectedRoute({ allowedRoles = [] }: ProtectedRouteProps) {
   const location = useLocation()
   const profile = getUserProfile()
-  const userRole = profile?.rol ?? null
+  const userRole = String(profile?.rol ?? '').trim().toLowerCase()
+  const normalizedAllowedRoles = allowedRoles.map((role) => String(role).trim().toLowerCase())
 
-  if (userRole === null) {
+  if (!userRole) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />
   }
 
-  if (!allowedRoles.includes(userRole)) {
+  if (!normalizedAllowedRoles.includes(userRole)) {
     return <Navigate to="/" replace />
   }
 
