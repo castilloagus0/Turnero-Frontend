@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { TurnosI } from '../interface/turnos.interface'
-import { barberoDelTurno, formatDateLabel, formatPriceARS, normalizeStatus, parsePrecio } from './dashboardUserUtils'
+import type { TurnosI } from '../../interface/turnos.interface'
+import {
+  barberoDelTurno,
+  formatDateLabel,
+  formatPriceARS,
+  type HistorialEstado,
+  normalizeHistorialEstado,
+  parsePrecio,
+} from './dashboardUserUtils'
 
 const PRIMARY = '#1D4ED8'
 const ACTIVITY_PAGE_SIZE = 10
@@ -70,40 +77,27 @@ type Props = {
   turnosError: string | null
 }
 
-type ActivityStatusFilter = 'TODOS' | 'PENDIENTE' | 'CONFIRMADO' | 'EN_CURSO' | 'COMPLETADO' | 'CANCELADO'
+type ActivityStatusFilter = 'TODOS' | HistorialEstado
 
-function getTurnoDateKey(fecha: string | undefined): string {
-  if (!fecha) return ''
-  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(fecha)
-  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`
-  const parsed = new Date(fecha)
-  if (Number.isNaN(parsed.getTime())) return ''
-  const y = parsed.getFullYear()
-  const m = String(parsed.getMonth() + 1).padStart(2, '0')
-  const d = String(parsed.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
+function getHistorialEstadoLabel(status: HistorialEstado): string {
+  switch (status) {
+    case 'EN_CURSO':
+      return 'En curso'
+    case 'COMPLETADO':
+      return 'Finalizado'
+    case 'CANCELADO':
+      return 'Cancelado'
+    case 'REPROGRAMADO':
+      return 'Reprogramado'
+    default: {
+      const _exhaustive: never = status
+      return _exhaustive
+    }
+  }
 }
 
 function StatusPill({ estado }: { estado: unknown }) {
-  const status = normalizeStatus(estado)
-
-  if (status === 'CONFIRMADO') {
-    return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
-        <ReceiptIcon className="h-3 w-3" />
-        Confirmado
-      </span>
-    )
-  }
-
-  if (status === 'PENDIENTE') {
-    return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-medium text-sky-800">
-        <ReceiptIcon className="h-3 w-3" />
-        Pendiente
-      </span>
-    )
-  }
+  const status = normalizeHistorialEstado(estado)
 
   if (status === 'EN_CURSO') {
     return (
@@ -123,12 +117,33 @@ function StatusPill({ estado }: { estado: unknown }) {
     )
   }
 
+  if (status === 'REPROGRAMADO') {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
+        <ReceiptIcon className="h-3 w-3" />
+        Reprogramado
+      </span>
+    )
+  }
+
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
       <ReceiptIcon className="h-3 w-3" />
       Cancelado
     </span>
   )
+}
+
+function getTurnoDateKey(fecha: string | undefined): string {
+  if (!fecha) return ''
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(fecha)
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`
+  const parsed = new Date(fecha)
+  if (Number.isNaN(parsed.getTime())) return ''
+  const y = parsed.getFullYear()
+  const m = String(parsed.getMonth() + 1).padStart(2, '0')
+  const d = String(parsed.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
 }
 
 export default function DashboardUserActividad({ turnos, turnosLoading, turnosError }: Props) {
@@ -138,7 +153,8 @@ export default function DashboardUserActividad({ turnos, turnosLoading, turnosEr
 
   const filteredTurnos = useMemo(() => {
     return turnos.filter((turno) => {
-      const statusOk = statusFilter === 'TODOS' || normalizeStatus(turno.estado) === statusFilter
+      const statusOk =
+        statusFilter === 'TODOS' || normalizeHistorialEstado(turno.estado) === statusFilter
       const dateOk = !dateFilter || getTurnoDateKey(turno.fecha) === dateFilter
       return statusOk && dateOk
     })
@@ -190,11 +206,10 @@ export default function DashboardUserActividad({ turnos, turnosLoading, turnosEr
                 className="h-10 rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-700 outline-none transition focus:border-[#1D4ED8]"
               >
                 <option value="TODOS">Todos</option>
-                <option value="PENDIENTE">Pendiente</option>
-                <option value="CONFIRMADO">Confirmado</option>
-                <option value="EN_CURSO">En curso</option>
-                <option value="COMPLETADO">Finalizado</option>
-                <option value="CANCELADO">Cancelado</option>
+                <option value="EN_CURSO">{getHistorialEstadoLabel('EN_CURSO')}</option>
+                <option value="COMPLETADO">{getHistorialEstadoLabel('COMPLETADO')}</option>
+                <option value="CANCELADO">{getHistorialEstadoLabel('CANCELADO')}</option>
+                <option value="REPROGRAMADO">{getHistorialEstadoLabel('REPROGRAMADO')}</option>
               </select>
             </label>
             <label className="flex flex-1 flex-col gap-1">

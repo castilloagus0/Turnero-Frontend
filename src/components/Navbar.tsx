@@ -94,7 +94,7 @@ export default function Navbar() {
                   
                   <div className="absolute right-0 mt-2 w-48 overflow-hidden rounded-md border border-neutral-200 bg-white shadow-lg z-20">
                     <Link
-                      to="/dashboard"
+                      to={getUserProfile()?.rol === 'user' ? '/user-dashboard' : '/admin-dashboard'}
                       onClick={() => setUserMenuOpen(false)}
                       className="block px-4 py-3 text-sm font-medium text-[#003d82] hover:bg-neutral-50 border-b border-neutral-100"
                     >

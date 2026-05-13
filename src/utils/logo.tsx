@@ -1,5 +1,5 @@
+import logoImg from '../assets/logo1.webp'
+
 export const Logo = () => {
-  return (
-    <img src="src/assets/logo1.webp" alt="LC BARBER" className="size-full" />
-  )
+  return <img src={logoImg} alt="LC BARBER" className="size-full object-contain" />
 }

@@ -10,7 +10,11 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Contact from './pages/Contact'
 import CreateTurno from './pages/CreateTurno'
-import DashboardsUser from './pages/DashboardsUser'
+import UserDashboardLayout from './pages/DashboardUser/UserDashboardLayout'
+import UserDashboardHistorial from './pages/DashboardUser/UserDashboardHistorial'
+import UserDashboardPerfil from './pages/DashboardUser/UserDashboardPerfil'
+import UserDashboardTurnos from './pages/DashboardUser/UserDashboardTurnos'
+import ResetPasswordUsuario from './pages/DashboardUser/ResetPasswordUsuario'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminAnalytics from './pages/AdminAnalytics'
 import AdminTurnos from './pages/AdminTurnos'
@@ -30,7 +34,12 @@ function App() {
           {/* --- Rutas Protegidas: CLIENTE (User) --- */}
           {/* Solo entra si el rol es exactamente 'user' */}
           <Route element={<ProtectedRoute allowedRoles={['user']} />}>
-            <Route path="/user-dashboard" element={<DashboardsUser />} />
+            <Route path="/user-dashboard" element={<UserDashboardLayout />}>
+              <Route index element={<UserDashboardTurnos />} />
+              <Route path="historial" element={<UserDashboardHistorial />} />
+              <Route path="perfil" element={<UserDashboardPerfil />} />
+            </Route>
+            <Route path="/user-dashboard/reset-password" element={<ResetPasswordUsuario />} />
             <Route path="/create-turno" element={<CreateTurno />} />
             <Route path="/return-payment" element={<ResultPayment />} />
           </Route>

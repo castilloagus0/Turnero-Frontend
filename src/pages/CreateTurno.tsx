@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 // Services
 import { getServicios } from '../service/servicios.service'
@@ -6,6 +7,7 @@ import { getBarberos } from '../service/barbero.service'
 import { getHorarios } from '../service/horarios.service'
 import { getTipoPagos } from '../service/tipoPagos.service'
 import { createOrder } from '../service/pago.service'
+import { createTurno } from '../service/turno.service'
 
 // Interfaces
 import { Horarios } from '../interface/horarios.interface'
@@ -100,15 +102,22 @@ function CalendarSummaryIcon({ className }: { className?: string }) {
 }
 
 export default function CreateTurno() {
+  const navigate = useNavigate()
   const [services, setServices] = useState<Servicios[]>([])
   const [barbers, setBarbers] = useState<Barbero[]>([])
   const [horarios, setHorarios] = useState<Horarios[]>([])
   const [tipoPagos, setTipoPagos] = useState<tipoPagos[]>([])
 
+
   const [serviceId, setServiceId] = useState<string>('')
   const [barberId, setBarberId] = useState<string>('')
   const [horarioId, setHorarioId] = useState<string>('')
   const [paymentId, setPaymentId] = useState<string>('')
+  const [confirmandoTurno, setConfirmandoTurno] = useState(false)
+  const [modalExitoReserva, setModalExitoReserva] = useState<{ open: boolean; mensaje: string }>({
+    open: false,
+    mensaje: '',
+  })
 
   useEffect(() => {
     getServicios()
@@ -292,30 +301,84 @@ export default function CreateTurno() {
     return selectedYmd.y === calYear && selectedYmd.m === calMonth && selectedYmd.d === cell.day
   }
 
+  async function crearTurnoPagoLocalYDevolverMensaje(
+    fecha: string,
+    horarioIdNum: number,
+    usuarioId: number,
+    servicioId: number,
+    tipoPagoId: number,
+    barberoId: number,
+  ): Promise<string> {
+    const createTurnoResponse = await createTurno(fecha, horarioIdNum, usuarioId, servicioId, tipoPagoId, barberoId, 'null')
+    const msg = createTurnoResponse?.message
+    if (typeof msg === 'string' && msg.trim().length > 0) return msg
+    return 'Tu turno fue registrado correctamente.'
+  }
+
   async function handleConfirmarTurno() {
     const userId = localStorage.getItem('userId') ?? ''
     if (!userId) {
       console.error('No se encontró el userId en localStorage')
       return
     }
+    const metodoPago = tipoPagos.find((p) => p.id === paymentId)
+    if (!metodoPago) {
+      console.error('No hay método de pago seleccionado')
+      return
+    }
+
+    /** Misma lógica que en la grilla de medios de pago: no usar id fijo (p. ej. 1), el backend puede tener otro orden. */
+    const esMercadoPagoSeleccionado = isMercadoPago(metodoPago.nombre)
+
+    setConfirmandoTurno(true)
     try {
       const fecha = new Date(selectedYmd.y, selectedYmd.m, selectedYmd.d).toISOString().slice(0, 10)
-      localStorage.setItem(
-        'pendingTurno',
-        JSON.stringify({
-          fecha,
-          horarioId,
-          usuarioId: userId,
-          servicioId: serviceId.toString(),
-          tipoPagoId: paymentId.toString(),
-          barberoId: barberId.toString(),
-        })
-      )
 
-      const response = await createOrder(userId, serviceId.toString(), '0')
-      window.location.href = response.init_point
+      if (esMercadoPagoSeleccionado) {
+        localStorage.setItem(
+          'pendingTurno',
+          JSON.stringify({
+            fecha,
+            horarioId,
+            usuarioId: userId,
+            servicioId: serviceId.toString(),
+            tipoPagoId: paymentId.toString(),
+            barberoId: barberId.toString(),
+          }),
+        )
+        const response = await createOrder(userId, serviceId.toString(), '0')
+        const initPoint = response?.init_point
+        if (typeof initPoint === 'string' && initPoint.length > 0) {
+          window.location.href = initPoint
+          return
+        }
+        console.error('Respuesta sin init_point para pago Mercado Pago:', response)
+        return
+      }
+
+      const inicio = Date.now()
+      localStorage.removeItem('pendingTurno')
+      const tipoPagoId = Number(paymentId)
+      const mensaje = await crearTurnoPagoLocalYDevolverMensaje(
+        fecha,
+        Number(horarioId),
+        Number(userId),
+        Number(serviceId),
+        tipoPagoId,
+        Number(barberId),
+      )
+      const transcurrido = Date.now() - inicio
+      const restante = Math.max(0, 2000 - transcurrido)
+      if (restante > 0) {
+        await new Promise<void>((resolve) => {
+          window.setTimeout(resolve, restante)
+        })
+      }
+      setModalExitoReserva({ open: true, mensaje: mensaje })
     } catch (error) {
-      console.error('Error al crear la preferencia de pago:', error)
+      console.error('Error al confirmar el turno:', error)
+    } finally {
+      setConfirmandoTurno(false)
     }
   }
 
@@ -628,21 +691,64 @@ export default function CreateTurno() {
             </div>
             <button
               type="button"
-              disabled={!isComplete}
-              className={`inline-flex items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-sm font-semibold text-white shadow-md transition ${isComplete
+              disabled={!isComplete || confirmandoTurno}
+              className={`inline-flex items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-sm font-semibold text-white shadow-md transition ${isComplete && !confirmandoTurno
                 ? 'bg-[#1d6bff] hover:bg-[#155eea] cursor-pointer'
                 : 'bg-neutral-300 cursor-not-allowed'
                 }`}
               onClick={handleConfirmarTurno}
             >
-              Confirmar Turno
-              <svg className="ml-0.5 h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              {confirmandoTurno ? (
+                <>
+                  <span
+                    className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-white border-r-transparent"
+                    aria-hidden
+                  />
+                  <span>Procesando…</span>
+                </>
+              ) : (
+                <>
+                  Confirmar Turno
+                  <svg className="ml-0.5 h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </>
+              )}
             </button>
           </div>
         </div>
       </main>
+
+      {modalExitoReserva.open ? (
+        <div
+          className="fixed inset-0 z-100 flex items-center justify-center bg-black/45 px-4 backdrop-blur-[2px]"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="exito-reserva-titulo"
+        >
+          <div className="w-full max-w-md rounded-2xl border border-neutral-200/90 bg-white p-6 shadow-[0_20px_50px_rgb(0,0,0,0.12)] sm:p-8">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#e8f1ff] text-[#1d6bff]">
+              <svg className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" aria-hidden>
+                <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <h2 id="exito-reserva-titulo" className="mt-5 text-center text-xl font-bold tracking-tight text-neutral-900">
+              ¡Reserva confirmada!
+            </h2>
+            <p className="mt-3 text-center text-sm leading-relaxed text-neutral-600">{modalExitoReserva.mensaje}</p>
+            <button
+              type="button"
+              className="mt-8 w-full rounded-xl bg-[#1d6bff] px-5 py-3.5 text-sm font-semibold text-white shadow-md transition hover:bg-[#155eea] active:scale-[0.99]"
+              onClick={() => {
+                setModalExitoReserva({ open: false, mensaje: '' })
+                navigate('/user-dashboard')
+              }}
+            >
+              Ir a mi panel
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

@@ -2,7 +2,7 @@ import { type ComponentType, type ReactNode } from 'react'
 
 const PRIMARY = '#1D4ED8'
 
-export type DashboardUserSection = 'turnos' | 'actividad'
+export type DashboardUserSection = 'turnos' | 'actividad' | 'perfil'
 
 function ScissorsLogo({ className }: { className?: string }) {
   return (
@@ -33,6 +33,18 @@ function ActivityNavIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
       <path d="M4 7a1.25 1.25 0 112.5 0 1.25 1.25 0 01-2.5 0zM10 7h10v2H10V7zm0 5h10v2H10v-2zm0 5h10v2H10v-2zm-8.05-8.25a1.25 1.25 0 112.5 0 1.25 1.25 0 01-2.5 0zm0 5a1.25 1.25 0 112.5 0 1.25 1.25 0 01-2.5 0zm0 5a1.25 1.25 0 112.5 0 1.25 1.25 0 01-2.5 0z" />
+    </svg>
+  )
+}
+
+function UserCircleIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <path
+        d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }
@@ -95,6 +107,12 @@ export default function DashboardUserShell({
             label="Historial de Turnos"
             onClick={onNavigateActividad}
           />
+          <SidebarNavItem
+            active={activeSection === 'perfil'}
+            icon={UserCircleIcon}
+            label="Mi perfil"
+            onClick={() => onSectionChange('perfil')}
+          />
         </nav>
       </aside>
 
@@ -119,7 +137,7 @@ export default function DashboardUserShell({
             </button>
           </div>
           <nav
-            className="mt-3 grid grid-cols-2 gap-1.5 border-t border-neutral-100 pt-3"
+            className="mt-3 grid grid-cols-3 gap-1.5 border-t border-neutral-100 pt-3"
             aria-label="Secciones del panel"
           >
             <button
@@ -131,7 +149,7 @@ export default function DashboardUserShell({
                   : 'bg-neutral-100 text-neutral-600'
               }`}
             >
-              Próximos
+              PróximosASDASDAS
             </button>
             <button
               type="button"
@@ -143,6 +161,17 @@ export default function DashboardUserShell({
               }`}
             >
               Historial
+            </button>
+            <button
+              type="button"
+              onClick={() => onSectionChange('perfil')}
+              className={`rounded-lg py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-wide transition sm:text-xs ${
+                activeSection === 'perfil'
+                  ? 'bg-[#1D4ED8] text-white'
+                  : 'bg-neutral-100 text-neutral-600'
+              }`}
+            >
+              Perfil
             </button>
           </nav>
         </header>
