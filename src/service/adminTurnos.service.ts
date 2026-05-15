@@ -1,6 +1,6 @@
 import axios from 'axios'
 import type { TurnosI } from '../interface/turnos.interface'
-import type { AdminTurnosData, TurnoItem, TurnoStatus, TurnoSummary } from '../mocks/adminTurnos.mock'
+import { getMockAdminTurnos, type AdminTurnosData, type TurnoItem, type TurnoStatus, type TurnoSummary } from '../mocks/adminTurnos.mock'
 
 function normalizeStatus(estado: string | null | undefined): TurnoStatus {
   const raw = String(estado ?? '').trim().toLowerCase()
@@ -56,7 +56,7 @@ function toTurnoItem(turno: TurnosI): TurnoItem {
     barberoId: Number(barbero?.id ?? 0),
     barbero: `${barbero?.nombre ?? ''} ${barbero?.apellido ?? ''}`.trim() || 'Sin asignar',
     servicioId: Number(turno.servicio?.id ?? 0),
-    servicio: turno.servicio?.nombre ?? 'Servicio sin nombre',
+    servicio: String(turno.servicio?.nombre ?? 'Servicio sin nombre'),
     duracionMin: Number(turno.servicio?.duracionAproximada ?? 0),
     precio: Number.isFinite(precio) ? precio : 0,
     medioPagoId: 0,
@@ -67,12 +67,17 @@ function toTurnoItem(turno: TurnosI): TurnoItem {
 }
 
 export async function getAdminTurnos(): Promise<AdminTurnosData> {
-  const response = await axios.get(`${import.meta.env.VITE_URL_API}turno`)
-  const sourceTurnos = getResponseList(response.data)
-  const turnos = sourceTurnos.map(toTurnoItem)
-  return {
-    generatedAt: new Date().toISOString(),
-    summary: buildSummary(turnos),
-    turnos,
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_URL_API}turno`, { timeout: 25_000 })
+    const sourceTurnos = getResponseList(response.data)
+    const turnos = sourceTurnos.map(toTurnoItem)
+    return {
+      generatedAt: new Date().toISOString(),
+      summary: buildSummary(turnos),
+      turnos,
+    }
+  } catch (error) {
+    console.warn('[getAdminTurnos] API no disponible o error; se usan datos de demostración.', error)
+    return getMockAdminTurnos()
   }
 }

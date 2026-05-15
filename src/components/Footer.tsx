@@ -10,7 +10,7 @@ function SocialIcon({ children, label }: { children: ReactNode; label: string })
     <a
       href="#"
       aria-label={label}
-      className="flex size-9 items-center justify-center rounded-full border border-neutral-200 bg-neutral-100 text-neutral-500 transition hover:border-neutral-300 hover:text-[#0056b3]"
+      className="flex size-11 min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-neutral-100 text-neutral-500 transition hover:border-neutral-300 hover:text-[#0056b3]"
     >
       {children}
     </a>
@@ -33,17 +33,17 @@ export default function Footer() {
         </ScrollReveal>
 
         <ScrollReveal variant="fade-up" delay={80}>
-          <nav className="flex flex-wrap justify-center gap-x-8 gap-y-2 text-xs font-semibold tracking-widest text-neutral-500">
-            <a href="#" className="transition hover:text-[#0056b3]">
+          <nav className="flex max-w-full flex-wrap justify-center gap-x-6 gap-y-3 text-xs font-semibold tracking-widest text-neutral-500 sm:gap-x-8">
+            <a href="#" className="inline-flex min-h-11 items-center px-2 transition hover:text-[#0056b3]">
               TÉRMINOS
             </a>
-            <a href="#" className="transition hover:text-[#0056b3]">
+            <a href="#" className="inline-flex min-h-11 items-center px-2 transition hover:text-[#0056b3]">
               PRIVACIDAD
             </a>
-            <Link to="/contact" className="transition hover:text-[#0056b3]">
+            <Link to="/contact" className="inline-flex min-h-11 items-center px-2 transition hover:text-[#0056b3]">
               CONTACTO
             </Link>
-            <a href="#" className="transition hover:text-[#0056b3]">
+            <a href="#" className="inline-flex min-h-11 items-center px-2 transition hover:text-[#0056b3]">
               UBICACIÓN
             </a>
           </nav>
@@ -72,10 +72,10 @@ export default function Footer() {
 
         <ScrollReveal variant="fade-up" delay={240}>
           <div className="space-y-1">
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs leading-relaxed text-neutral-500 sm:text-sm">
               © {year} LC BARBER. TODOS LOS DERECHOS RESERVADOS.
             </p>
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400">
+            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-neutral-400 sm:text-xs">
               Designed by Agustín Castillo
             </p>
           </div>

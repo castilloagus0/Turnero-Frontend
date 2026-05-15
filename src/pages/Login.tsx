@@ -32,7 +32,7 @@ export default function Login() {
       accent="sesión"
       subtitle="Accedé a tus turnos, historial y promociones exclusivas de la barbería."
     >
-      <article className="rounded-xl border border-neutral-100 bg-white p-8 shadow-md shadow-neutral-200/60 sm:p-10">
+      <article className="rounded-xl border border-neutral-100 bg-white p-6 shadow-md shadow-neutral-200/60 sm:p-10">
         {error ? (
           <p
             className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
@@ -86,7 +86,7 @@ export default function Login() {
 
           <button
             type="submit"
-            className="w-full rounded-lg bg-[#0056b3] px-4 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-sm transition hover:bg-[#004a9a]"
+            className="touch-manipulation min-h-12 w-full rounded-xl bg-[#0056b3] px-4 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-sm transition hover:bg-[#004a9a] active:scale-[0.99]"
           >
             Entrar
           </button>

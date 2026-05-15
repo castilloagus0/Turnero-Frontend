@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from 'react'
 import { getAdminAnalytics } from '../service/adminAnalytics.service'
 import type { AdminAnalyticsData, AnalyticsPeriod, BarberPerformance, PaymentMethodStat, RevenuePoint, ServiceStat } from '../mocks/adminAnalytics.mock'
 
-const PRIMARY = '#2563EB'
+const PRIMARY = '#1D4ED8'
 
 type AsyncState =
   | { status: 'loading' }
@@ -15,7 +15,7 @@ const PERIOD_LABEL: Record<AnalyticsPeriod, string> = {
   quarter: 'Trimestre',
 }
 
-const PAYMENT_COLORS = ['#2563EB', '#14B8A6', '#F59E0B', '#8B5CF6']
+const PAYMENT_COLORS = ['#1D4ED8', '#14B8A6', '#F59E0B', '#8B5CF6']
 
 function formatValue(value: number, format: 'currency' | 'number' | 'percent'): string {
   if (format === 'currency') {
@@ -91,8 +91,8 @@ function LineChart({
   const path = buildLinePath(points, chartWidth, chartHeight)
 
   return (
-    <div className="w-full overflow-x-auto">
-      <svg viewBox={`0 0 ${chartWidth} ${chartHeight + 35}`} className="min-w-[560px] w-full" role="img" aria-label="Tendencia de ingresos">
+    <div className="w-full min-w-0 overflow-x-auto rounded-xl border border-neutral-100 bg-white p-2 shadow-sm sm:p-3">
+      <svg viewBox={`0 0 ${chartWidth} ${chartHeight + 35}`} className="min-w-[min(560px,100%)] w-full max-w-full" role="img" aria-label="Tendencia de ingresos">
         {Array.from({ length: 5 }).map((_, idx) => {
           const y = (chartHeight / 4) * idx
           return (
@@ -209,7 +209,7 @@ export default function AdminAnalytics() {
                 type="button"
                 onClick={() => setPeriod(option)}
                 className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                  period === option ? 'bg-white text-[#2563EB] shadow-sm' : 'text-neutral-600 hover:text-neutral-900'
+                  period === option ? 'bg-white text-[#1D4ED8] shadow-sm' : 'text-neutral-600 hover:text-neutral-900'
                 }`}
               >
                 {PERIOD_LABEL[option]}
@@ -239,7 +239,7 @@ export default function AdminAnalytics() {
         <article className="xl:col-span-3 rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-lg font-bold text-neutral-900">Evolución de ingresos</h2>
-            <div className="rounded-lg bg-blue-50 px-3 py-1.5 text-sm font-semibold text-[#2563EB]">
+            <div className="rounded-lg bg-blue-50 px-3 py-1.5 text-sm font-semibold text-[#1D4ED8]">
               {activeRevenue ? `${activeRevenue.label}: ${formatValue(activeRevenue.value, 'currency')}` : '-'}
             </div>
           </div>
@@ -335,7 +335,7 @@ export default function AdminAnalytics() {
                     <p className="text-sm font-bold text-neutral-900">{service.cuts} cortes</p>
                   </div>
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-neutral-100">
-                    <div className="h-full rounded-full bg-[#2563EB]" style={{ width: `${ratio}%` }} />
+                    <div className="h-full rounded-full bg-[#1D4ED8]" style={{ width: `${ratio}%` }} />
                   </div>
                   <p className="mt-2 text-xs text-neutral-500">Facturación: {formatValue(service.revenue, 'currency')}</p>
                 </div>

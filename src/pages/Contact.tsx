@@ -54,7 +54,7 @@ export default function Contact() {
 
   return (
     <div className="bg-neutral-50">
-      <section className="border-b border-neutral-200/80 bg-white px-6 py-14 lg:px-8">
+      <section className="border-b border-neutral-200/80 bg-white px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <ScrollReveal variant="fade-up">
             <h1 className="text-3xl font-extrabold uppercase italic text-neutral-900 sm:text-4xl md:text-5xl">
@@ -68,10 +68,10 @@ export default function Contact() {
         </div>
       </section>
 
-      <section className="px-6 py-14 lg:px-8">
+      <section className="px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-2 lg:gap-12">
           <ScrollReveal variant="fade-left" className="min-w-0">
-            <article className="rounded-xl border border-neutral-100 bg-white p-8 shadow-md shadow-neutral-200/60 md:p-10">
+            <article className="rounded-xl border border-neutral-100 bg-white p-5 shadow-md shadow-neutral-200/60 sm:p-8 md:p-10">
             <h2 className="text-xl font-extrabold uppercase italic tracking-tight text-neutral-900">
               Enviarnos un mensaje
             </h2>
@@ -94,7 +94,7 @@ export default function Contact() {
                   required
                   autoComplete="name"
                   placeholder="Ej. Juan Pérez"
-                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition focus:border-[#0056b3] focus:ring-2 focus:ring-[#0056b3]/20"
+                  className="w-full min-h-12 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 outline-none transition focus:border-[#0056b3] focus:ring-2 focus:ring-[#0056b3]/20 sm:text-sm"
                 />
               </div>
               <div>
@@ -108,7 +108,7 @@ export default function Contact() {
                   required
                   autoComplete="email"
                   placeholder="nombre@ejemplo.com"
-                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition focus:border-[#0056b3] focus:ring-2 focus:ring-[#0056b3]/20"
+                  className="w-full min-h-12 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 outline-none transition focus:border-[#0056b3] focus:ring-2 focus:ring-[#0056b3]/20 sm:text-sm"
                 />
               </div>
               <div>
@@ -121,12 +121,12 @@ export default function Contact() {
                   required
                   rows={5}
                   placeholder="Contanos en qué podemos ayudarte…"
-                  className="w-full resize-y rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition focus:border-[#0056b3] focus:ring-2 focus:ring-[#0056b3]/20"
+                  className="w-full min-h-[8rem] resize-y rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 outline-none transition focus:border-[#0056b3] focus:ring-2 focus:ring-[#0056b3]/20 sm:text-sm"
                 />
               </div>
               <button
                 type="submit"
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#0056b3] px-4 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-sm transition hover:bg-[#004a9a]"
+                className="touch-manipulation flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#0056b3] px-4 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-sm transition hover:bg-[#004a9a] active:scale-[0.99]"
               >
                 <svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
                   <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" strokeLinecap="round" strokeLinejoin="round" />

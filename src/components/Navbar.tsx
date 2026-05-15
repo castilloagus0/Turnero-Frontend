@@ -11,12 +11,12 @@ const desktopNavLink = ({ isActive }: { isActive: boolean }) =>
   }`
 
 const mobileNavLink = ({ isActive }: { isActive: boolean }) =>
-  `block border-b border-neutral-100 py-3.5 text-xs font-semibold tracking-widest transition hover:text-[#0056b3] last:border-b-0 ${
+  `block border-b border-neutral-100 py-4 text-sm font-semibold tracking-widest transition hover:text-[#0056b3] last:border-b-0 ${
     isActive ? 'text-[#0056b3]' : 'text-neutral-600'
   }`
 
 const mobileNavAnchorClass =
-  'block border-b border-neutral-100 py-3.5 text-xs font-semibold tracking-widest text-neutral-600 transition hover:text-[#0056b3]'
+  'block border-b border-neutral-100 py-4 text-sm font-semibold tracking-widest text-neutral-600 transition hover:text-[#0056b3]'
 
 export default function Navbar() {
   const [isLogged, setLogged] = useState(false)
@@ -24,12 +24,10 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-  const [pathSynced, setPathSynced] = useState(location.pathname)
 
-  if (location.pathname !== pathSynced) {
-    setPathSynced(location.pathname)
+  useEffect(() => {
     setMenuOpen(false)
-  }
+  }, [location.pathname])
 
   useEffect(() => {
     setLogged(!!getUserProfile())
@@ -50,7 +48,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-neutral-200/80 bg-white/95 shadow-sm backdrop-blur-md supports-backdrop-filter:bg-white/80">
       <div
-        className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4 lg:gap-6 lg:px-8"
+        className="mx-auto flex max-w-6xl min-w-0 items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4 lg:gap-6 lg:px-8"
         style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top, 0px))' }}
       >
         <Link to="/" className="flex size-18 shrink-0 items-center justify-center rounded">
@@ -77,8 +75,11 @@ export default function Navbar() {
             /* --- DISEÑO LOGUEADO CON DROPDOWN --- */
             <div className="relative">
               <button
+                type="button"
                 onClick={() => setUserMenuOpen((o) => !o)}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-[#003d82] transition hover:bg-neutral-50 focus:outline-none shadow-sm"
+                className="touch-manipulation flex h-11 w-11 items-center justify-center rounded-full border border-neutral-300 bg-white text-[#003d82] shadow-sm transition hover:bg-neutral-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0056b3]"
+                aria-expanded={userMenuOpen}
+                aria-haspopup="menu"
               >
                 {/* Icono de Personita */}
                 <svg className="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -92,22 +93,23 @@ export default function Navbar() {
                   {/* Overlay transparente para cerrar al hacer clic fuera */}
                   <div className="fixed inset-0 z-10" onClick={() => setUserMenuOpen(false)}></div>
                   
-                  <div className="absolute right-0 mt-2 w-48 overflow-hidden rounded-md border border-neutral-200 bg-white shadow-lg z-20">
+                  <div className="absolute right-0 z-20 mt-2 w-[min(calc(100vw-2rem),14rem)] overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-lg ring-1 ring-black/5">
                     <Link
                       to={getUserProfile()?.rol === 'user' ? '/user-dashboard' : '/admin-dashboard'}
                       onClick={() => setUserMenuOpen(false)}
-                      className="block px-4 py-3 text-sm font-medium text-[#003d82] hover:bg-neutral-50 border-b border-neutral-100"
+                      className="block px-4 py-3.5 text-sm font-medium text-[#003d82] transition hover:bg-neutral-50"
                     >
                       Ver perfil
                     </Link>
                     <button
-                      onClick={() => { 
+                      type="button"
+                      onClick={() => {
                         clearUserProfile()
                         setLogged(false)
                         setUserMenuOpen(false)
                         navigate('/')
                       }}
-                      className="block w-full text-left px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition"
+                      className="block w-full border-t border-neutral-100 px-4 py-3.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
                     >
                       Cerrar sesión
                     </button>
@@ -120,13 +122,13 @@ export default function Navbar() {
             <>
               <Link
                 to="/login"
-                className="touch-manipulation rounded-md border border-neutral-300 bg-white px-2.5 py-2 text-xs font-semibold text-[#003d82] transition hover:border-neutral-400 sm:px-4 sm:text-sm"
+                className="touch-manipulation inline-flex min-h-11 min-w-[5.5rem] items-center justify-center rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm font-semibold text-[#003d82] transition hover:border-neutral-400 sm:px-4"
               >
                 Ingresar
               </Link>
               <Link
                 to="/register"
-                className="touch-manipulation rounded-md bg-[#0056b3] px-2.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#004a9a] sm:px-4 sm:text-sm"
+                className="touch-manipulation inline-flex min-h-11 min-w-[5.5rem] items-center justify-center rounded-lg bg-[#0056b3] px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#004a9a] sm:px-4"
               >
                 Registrarse
               </Link>
@@ -136,7 +138,7 @@ export default function Navbar() {
           {/* BOTÓN MENÚ MÓVIL (HAMBURGUESA) */}
           <button
             type="button"
-            className="touch-manipulation flex size-10 items-center justify-center rounded-md border border-neutral-200 bg-white text-neutral-700 md:hidden"
+            className="touch-manipulation flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-700 md:hidden"
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
             aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
@@ -166,7 +168,7 @@ export default function Navbar() {
           />
           <div
             id="mobile-nav"
-            className="absolute inset-x-0 top-full z-50 max-h-[min(70vh,28rem)] overflow-y-auto border-b border-neutral-200 bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] pt-2 shadow-lg md:hidden"
+            className="absolute inset-x-0 top-full z-50 max-h-[min(75dvh,26rem)] overflow-y-auto overscroll-contain border-b border-neutral-200 bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] pt-2 shadow-lg md:hidden"
           >
             <nav className="flex flex-col" aria-label="Móvil">
               <NavLink to="/" end className={mobileNavLink}>

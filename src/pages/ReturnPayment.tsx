@@ -255,9 +255,7 @@ export function ResultPayment() {
   };
 
   return (
-    <div
-      className={`min-h-screen bg-neutral-50 flex items-center justify-center`}
-    >
+    <div className="relative min-h-dvh bg-neutral-50 px-4 py-8 pb-[max(2rem,env(safe-area-inset-bottom,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))] sm:flex sm:min-h-dvh sm:items-center sm:justify-center sm:py-12">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div
           className={`absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-3xl opacity-10
@@ -270,25 +268,25 @@ export function ResultPayment() {
       </div>
 
       <div
-        className={`relative w-full max-w-md transition-all duration-700 ease-out
+        className={`relative mx-auto w-full min-w-0 max-w-md transition-all duration-700 ease-out sm:px-0
           ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}
         `}
       >
         <div
-          className={`${config.cardGradient} border border-neutral-200 border-t-4 ${config.cardTopBorder} rounded-3xl p-8 shadow-2xl text-center`}
+          className={`${config.cardGradient} border border-neutral-200 border-t-4 ${config.cardTopBorder} rounded-2xl p-6 text-center shadow-2xl sm:rounded-3xl sm:p-8`}
         >
-          <div className="flex justify-center mb-6">
+          <div className="mb-5 flex justify-center sm:mb-6">
             <div
-              className={`w-24 h-24 rounded-full ${config.iconBg} ring-4 ${config.ringColor} flex items-center justify-center`}
+              className={`flex h-20 w-20 items-center justify-center rounded-full sm:h-24 sm:w-24 ${config.iconBg} ring-4 ${config.ringColor}`}
             >
-              <span className={`text-4xl font-bold ${config.iconColor}`}>
+              <span className={`text-3xl font-bold sm:text-4xl ${config.iconColor}`}>
                 {config.icon}
               </span>
             </div>
           </div>
 
-          <h1 className="text-3xl font-bold text-neutral-900 mb-2">{config.title}</h1>
-          <p className={`text-base font-semibold mb-4 ${config.iconColor}`}>
+          <h1 className="mb-2 text-2xl font-bold leading-tight text-neutral-900 sm:text-3xl">{config.title}</h1>
+          <p className={`mb-4 text-sm font-semibold leading-snug sm:text-base ${config.iconColor}`}>
             {showTurnoFalloAyuda ? "Tu pago está acreditado, pero falló la confirmación del turno." : config.subtitle}
           </p>
 
@@ -324,7 +322,7 @@ export function ResultPayment() {
                 href={whatsappLink || "#"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] py-3.5 text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:bg-[#20bd5c] active:scale-95 ${
+                className={`flex w-full min-h-12 touch-manipulation items-center justify-center gap-2 rounded-xl bg-[#25D366] py-3.5 text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:bg-[#20bd5c] active:scale-[0.98] ${
                   !whatsappLink ? "pointer-events-none opacity-50" : ""
                 }`}
               >
@@ -335,7 +333,7 @@ export function ResultPayment() {
               <button
                 type="button"
                 onClick={handlePrimaryAction}
-                className={`w-full py-3.5 rounded-xl text-white font-semibold text-sm shadow-lg transition-all duration-200 active:scale-95 ${config.primaryBtn}`}
+                className={`min-h-12 w-full touch-manipulation rounded-xl py-3.5 text-sm font-semibold text-white shadow-lg transition-all duration-200 active:scale-[0.98] ${config.primaryBtn}`}
               >
                 {config.primaryBtnText}
               </button>
@@ -344,7 +342,7 @@ export function ResultPayment() {
               type="button"
               onClick={() => navigate("/")}
               disabled={paymentStatus === "approved" && isConfirming}
-              className="w-full py-3.5 rounded-xl text-neutral-700 font-semibold text-sm border border-neutral-300 hover:bg-neutral-50 transition-all duration-200 active:scale-95"
+              className="min-h-12 w-full touch-manipulation rounded-xl border border-neutral-300 py-3.5 text-sm font-semibold text-neutral-700 transition-all duration-200 hover:bg-neutral-50 active:scale-[0.98]"
             >
               Volver al inicio
             </button>

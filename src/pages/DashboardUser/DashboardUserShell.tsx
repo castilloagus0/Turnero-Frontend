@@ -117,46 +117,46 @@ export default function DashboardUserShell({
       </aside>
 
       <div className="flex min-h-screen flex-1 flex-col md:pl-60 lg:pl-64">
-        <header className="sticky top-0 z-10 border-b border-neutral-200/80 bg-white/95 px-4 py-4 backdrop-blur md:hidden">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
+        <header className="sticky top-0 z-10 border-b border-neutral-200/80 bg-white/95 px-3 py-3 backdrop-blur supports-backdrop-filter:bg-white/90 sm:px-4 md:hidden">
+          <div className="flex min-w-0 items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2">
               <span
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-white"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white"
                 style={{ backgroundColor: PRIMARY }}
               >
                 <ScissorsLogo className="h-4 w-4" />
               </span>
-              <span className="font-bold text-neutral-900">Barbería Pro</span>
+              <span className="truncate text-sm font-bold text-neutral-900 sm:text-base">Barbería Pro</span>
             </div>
             <button
               type="button"
               onClick={onLogout}
-              className="rounded-lg px-2 py-1 text-sm font-medium text-red-600"
+              className="touch-manipulation shrink-0 rounded-lg px-3 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50"
             >
               Salir
             </button>
           </div>
           <nav
-            className="mt-3 grid grid-cols-3 gap-1.5 border-t border-neutral-100 pt-3"
+            className="mt-3 grid grid-cols-3 gap-2 border-t border-neutral-100 pt-3"
             aria-label="Secciones del panel"
           >
             <button
               type="button"
               onClick={() => onSectionChange('turnos')}
-              className={`rounded-lg py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-wide transition sm:text-xs ${
+              className={`touch-manipulation min-h-12 rounded-lg py-2.5 text-center text-xs font-bold uppercase leading-snug tracking-wide transition sm:text-sm ${
                 activeSection === 'turnos'
-                  ? 'bg-[#1D4ED8] text-white'
+                  ? 'bg-[#1D4ED8] text-white shadow-sm'
                   : 'bg-neutral-100 text-neutral-600'
               }`}
             >
-              PróximosASDASDAS
+              Próximos
             </button>
             <button
               type="button"
               onClick={onNavigateActividad}
-              className={`rounded-lg py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-wide transition sm:text-xs ${
+              className={`touch-manipulation min-h-12 rounded-lg py-2.5 text-center text-xs font-bold uppercase leading-snug tracking-wide transition sm:text-sm ${
                 activeSection === 'actividad'
-                  ? 'bg-[#1D4ED8] text-white'
+                  ? 'bg-[#1D4ED8] text-white shadow-sm'
                   : 'bg-neutral-100 text-neutral-600'
               }`}
             >
@@ -165,9 +165,9 @@ export default function DashboardUserShell({
             <button
               type="button"
               onClick={() => onSectionChange('perfil')}
-              className={`rounded-lg py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-wide transition sm:text-xs ${
+              className={`touch-manipulation min-h-12 rounded-lg py-2.5 text-center text-xs font-bold uppercase leading-snug tracking-wide transition sm:text-sm ${
                 activeSection === 'perfil'
-                  ? 'bg-[#1D4ED8] text-white'
+                  ? 'bg-[#1D4ED8] text-white shadow-sm'
                   : 'bg-neutral-100 text-neutral-600'
               }`}
             >
@@ -176,7 +176,7 @@ export default function DashboardUserShell({
           </nav>
         </header>
 
-        <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
+        <main className="min-w-0 flex-1 px-3 py-5 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
           <div className="mx-auto max-w-6xl">{children}</div>
         </main>
       </div>

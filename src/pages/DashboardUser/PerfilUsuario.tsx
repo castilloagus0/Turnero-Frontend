@@ -209,7 +209,7 @@ export default function PerfilUsuario() {
             type="text"
             value={formulario.nombre}
             onChange={(e) => actualizarCampoFormulario('nombre', e.target.value)}
-            className="h-11 rounded-xl border border-neutral-200 px-3 text-sm outline-none transition focus:border-[#1D4ED8]"
+            className="min-h-12 w-full rounded-xl border border-neutral-200 px-3 text-base text-neutral-900 outline-none transition focus:border-[#1D4ED8] focus:ring-2 focus:ring-[#1D4ED8]/15 sm:text-sm"
             autoComplete="given-name"
           />
         </label>
@@ -219,7 +219,7 @@ export default function PerfilUsuario() {
             type="text"
             value={formulario.apellido}
             onChange={(e) => actualizarCampoFormulario('apellido', e.target.value)}
-            className="h-11 rounded-xl border border-neutral-200 px-3 text-sm outline-none transition focus:border-[#1D4ED8]"
+            className="min-h-12 w-full rounded-xl border border-neutral-200 px-3 text-base text-neutral-900 outline-none transition focus:border-[#1D4ED8] focus:ring-2 focus:ring-[#1D4ED8]/15 sm:text-sm"
             autoComplete="family-name"
           />
         </label>
@@ -229,7 +229,7 @@ export default function PerfilUsuario() {
             type="email"
             value={formulario.email}
             onChange={(e) => actualizarCampoFormulario('email', e.target.value)}
-            className="h-11 rounded-xl border border-neutral-200 px-3 text-sm outline-none transition focus:border-[#1D4ED8]"
+            className="min-h-12 w-full rounded-xl border border-neutral-200 px-3 text-base text-neutral-900 outline-none transition focus:border-[#1D4ED8] focus:ring-2 focus:ring-[#1D4ED8]/15 sm:text-sm"
             autoComplete="email"
           />
         </label>
@@ -239,7 +239,7 @@ export default function PerfilUsuario() {
             type="tel"
             value={formulario.telefono}
             onChange={(e) => actualizarCampoFormulario('telefono', e.target.value)}
-            className="h-11 rounded-xl border border-neutral-200 px-3 text-sm outline-none transition focus:border-[#1D4ED8]"
+            className="min-h-12 w-full rounded-xl border border-neutral-200 px-3 text-base text-neutral-900 outline-none transition focus:border-[#1D4ED8] focus:ring-2 focus:ring-[#1D4ED8]/15 sm:text-sm"
             autoComplete="tel"
           />
         </label>
@@ -249,7 +249,7 @@ export default function PerfilUsuario() {
             type="date"
             value={formulario.nacimiento}
             onChange={(e) => actualizarCampoFormulario('nacimiento', e.target.value)}
-            className="h-11 rounded-xl border border-neutral-200 px-3 text-sm outline-none transition focus:border-[#1D4ED8]"
+            className="min-h-12 w-full rounded-xl border border-neutral-200 px-3 text-base text-neutral-900 outline-none transition focus:border-[#1D4ED8] focus:ring-2 focus:ring-[#1D4ED8]/15 sm:text-sm"
           />
         </label>
         {/* <label className="flex flex-col gap-1">
@@ -259,18 +259,18 @@ export default function PerfilUsuario() {
             value={formulario.nuevaPassword}
             onChange={(e) => actualizarCampoFormulario('nuevaPassword', e.target.value)}
             placeholder="Dejar vacío para no cambiar"
-            className="h-11 rounded-xl border border-neutral-200 px-3 text-sm outline-none transition focus:border-[#1D4ED8]"
+            className="min-h-12 w-full rounded-xl border border-neutral-200 px-3 text-base text-neutral-900 outline-none transition focus:border-[#1D4ED8] focus:ring-2 focus:ring-[#1D4ED8]/15 sm:text-sm"
             autoComplete="new-password"
           />
         </label> */}
       </div>
 
-      <div className="mt-8 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+      <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <button
           type="button"
           onClick={descartarCambiosYVolverAlOriginal}
           disabled={guardando}
-          className="rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 disabled:opacity-50"
+          className="touch-manipulation min-h-12 w-full rounded-xl border border-neutral-200 bg-white px-5 py-3 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 disabled:opacity-50 sm:w-auto sm:py-2.5"
         >
           Cancelar
         </button>
@@ -278,7 +278,7 @@ export default function PerfilUsuario() {
           type="button"
           onClick={() => void guardarCambiosPerfilEnServidor()}
           disabled={guardando}
-          className="rounded-xl bg-[#1D4ED8] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-110 disabled:opacity-50"
+          className="touch-manipulation min-h-12 w-full rounded-xl bg-[#1D4ED8] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-110 disabled:opacity-50 sm:w-auto sm:py-2.5"
         >
           {guardando ? 'Guardando...' : 'Guardar cambios'}
         </button>

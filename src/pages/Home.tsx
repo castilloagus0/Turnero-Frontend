@@ -14,7 +14,7 @@ function ServiceCard({
   children: ReactNode
 }) {
   return (
-    <article className="rounded-xl border border-neutral-100 bg-white p-6 shadow-md shadow-neutral-200/60 sm:p-8">
+    <article className="rounded-xl border border-neutral-100 bg-white p-5 shadow-md shadow-neutral-200/60 sm:p-8">
       <div className="mb-5 flex size-14 items-center justify-center rounded-lg bg-sky-100 text-[#0056b3]">
         {icon}
       </div>
@@ -50,16 +50,16 @@ export default function Home() {
             </p>
           </ScrollReveal>
           <ScrollReveal variant="fade-up" delay={260}>
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2 sm:justify-center">
               <Link
                 to="/create-turno"
-                className="rounded-md bg-[#0056b3] px-8 py-3 text-sm font-bold uppercase tracking-wide text-white shadow-lg transition hover:bg-[#004a9a]"
+                className="touch-manipulation inline-flex min-h-12 w-full min-w-0 flex-1 items-center justify-center rounded-lg bg-[#0056b3] px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-lg transition hover:bg-[#004a9a] active:scale-[0.99] sm:w-auto sm:flex-initial sm:px-8"
               >
                 Reservar turno
               </Link>
               <a
                 href="#servicios"
-                className="rounded-md border border-white/40 bg-black/25 px-8 py-3 text-sm font-bold uppercase tracking-wide text-white backdrop-blur-sm transition hover:bg-black/35"
+                className="touch-manipulation inline-flex min-h-12 w-full min-w-0 flex-1 items-center justify-center rounded-lg border border-white/40 bg-black/25 px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-white backdrop-blur-sm transition hover:bg-black/35 active:scale-[0.99] sm:w-auto sm:flex-initial sm:px-8"
               >
                 Ver servicios
               </a>

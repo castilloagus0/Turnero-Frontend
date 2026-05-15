@@ -40,41 +40,41 @@ function IconoUsuario({ className }: { className?: string }) {
 function EtiquetaEstadoTurno({ status }: { status: AppointmentStatus }) {
   if (status === 'CONFIRMADO') {
     return (
-      <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+      <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700">
         Confirmado
       </span>
     )
   }
   if (status === 'EN_CURSO') {
     return (
-      <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800">
+      <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-800">
         Iniciado
       </span>
     )
   }
   if (status === 'COMPLETADO') {
     return (
-      <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-neutral-700">
+      <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-neutral-700">
         Completado
       </span>
     )
   }
   if (status === 'CANCELADO') {
     return (
-      <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-700">
+      <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-red-700">
         Cancelado
       </span>
     )
   }
   if (status === 'REPROGRAMADO') {
     return (
-      <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-700">
+      <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-red-700">
         Reprogramado
       </span>
     )
   }
   return (
-    <span className="rounded-full bg-sky-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sky-700">
+    <span className="rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-sky-700">
       Pendiente
     </span>
   )
@@ -487,11 +487,11 @@ export default function TurnosUser({
                 </p>
                 <div className="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-neutral-50 px-3 py-3">
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">Fecha</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-neutral-400">Fecha</p>
                     <p className="mt-0.5 text-sm font-bold text-neutral-900">{formatDateLabel(turno.fecha)}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">Hora</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-neutral-400">Hora</p>
                     <p className="mt-0.5 text-sm font-bold text-neutral-900">{formatTimeLabel(turno)}</p>
                   </div>
                 </div>

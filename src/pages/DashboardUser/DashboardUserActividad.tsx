@@ -197,13 +197,13 @@ export default function DashboardUserActividad({ turnos, turnosLoading, turnosEr
         <div className="px-4 py-10 text-center text-sm text-red-600 sm:px-6">{turnosError}</div>
       ) : (
         <>
-          <div className="flex flex-col gap-3 border-b border-neutral-100 px-4 py-4 sm:flex-row sm:items-end sm:gap-4 sm:px-6">
-            <label className="flex flex-1 flex-col gap-1">
+          <div className="flex flex-col gap-3 border-b border-neutral-100 bg-neutral-50/50 px-4 py-4 sm:flex-row sm:items-end sm:gap-4 sm:px-6">
+            <label className="flex flex-1 flex-col gap-1.5">
               <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Estado</span>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as ActivityStatusFilter)}
-                className="h-10 rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-700 outline-none transition focus:border-[#1D4ED8]"
+                className="min-h-12 w-full rounded-xl border border-neutral-200 bg-white px-3 text-base text-neutral-800 outline-none transition focus:border-[#1D4ED8] focus:ring-2 focus:ring-[#1D4ED8]/15 sm:text-sm"
               >
                 <option value="TODOS">Todos</option>
                 <option value="EN_CURSO">{getHistorialEstadoLabel('EN_CURSO')}</option>
@@ -212,20 +212,46 @@ export default function DashboardUserActividad({ turnos, turnosLoading, turnosEr
                 <option value="REPROGRAMADO">{getHistorialEstadoLabel('REPROGRAMADO')}</option>
               </select>
             </label>
-            <label className="flex flex-1 flex-col gap-1">
+            <label className="flex flex-1 flex-col gap-1.5">
               <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Fecha</span>
               <input
                 type="date"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="h-10 rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-700 outline-none transition focus:border-[#1D4ED8]"
+                className="min-h-12 w-full rounded-xl border border-neutral-200 bg-white px-3 text-base text-neutral-800 outline-none transition focus:border-[#1D4ED8] focus:ring-2 focus:ring-[#1D4ED8]/15 sm:text-sm"
               />
             </label>
           </div>
-          <div className="overflow-x-auto">
+          <ul className="divide-y divide-neutral-100 md:hidden" aria-label="Historial en vista compacta">
+            {activityPageSlice.length === 0 ? (
+              <li className="px-4 py-10 text-center text-sm text-neutral-500 sm:px-6">No hay turnos para mostrar.</li>
+            ) : (
+              activityPageSlice.map((turno) => (
+                <li key={turno.id} className="px-4 py-4 sm:px-6">
+                  <div className="flex gap-3">
+                    <ServiceRowIcon />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-neutral-900">{turno.servicio?.nombre}</p>
+                      <p className="mt-1 text-sm text-neutral-500">{formatDateLabel(turno.fecha)}</p>
+                      <p className="mt-1 text-xs text-neutral-500">
+                        {barberoDelTurno(turno)?.nombre} {barberoDelTurno(turno)?.apellido}
+                      </p>
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-base font-bold tabular-nums text-neutral-900">
+                          ${formatPriceARS(parsePrecio(turno.servicio?.precio))}
+                        </span>
+                        <StatusPill estado={turno.estado} />
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              ))
+            )}
+          </ul>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[520px] text-left text-sm">
               <thead>
-                <tr className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                <tr className="border-b border-neutral-100 bg-neutral-50/90 text-xs font-bold uppercase tracking-wider text-neutral-500">
                   <th className="px-4 py-3 sm:px-6">Servicio</th>
                   <th className="hidden px-2 py-3 sm:table-cell">Fecha</th>
                   <th className="hidden px-2 py-3 md:table-cell">Barbero</th>
@@ -242,7 +268,7 @@ export default function DashboardUserActividad({ turnos, turnosLoading, turnosEr
                   </tr>
                 ) : (
                   activityPageSlice.map((turno) => (
-                    <tr key={turno.id} className="hover:bg-neutral-50/80">
+                    <tr key={turno.id} className="transition hover:bg-neutral-50/80">
                       <td className="px-4 py-3 sm:px-6">
                         <div className="flex items-center gap-3">
                           <ServiceRowIcon />
@@ -279,7 +305,7 @@ export default function DashboardUserActividad({ turnos, turnosLoading, turnosEr
                     aria-label="Página anterior"
                     disabled={activityPage <= 1}
                     onClick={() => setActivityPage((p) => Math.max(1, p - 1))}
-                    className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 px-2 py-2 text-sm font-semibold text-neutral-700 shadow-sm transition hover:border-[#1D4ED8]/35 hover:bg-[#1D4ED8]/5 disabled:pointer-events-none disabled:opacity-40"
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-xl border border-neutral-200 px-3 text-sm font-semibold text-neutral-700 shadow-sm transition hover:border-[#1D4ED8]/35 hover:bg-[#1D4ED8]/5 disabled:pointer-events-none disabled:opacity-40"
                   >
                     <ChevronLeftIcon className="h-4 w-4" />
                     <span className="hidden sm:inline">Anterior</span>
@@ -289,7 +315,7 @@ export default function DashboardUserActividad({ turnos, turnosLoading, turnosEr
                     aria-label="Página siguiente"
                     disabled={activityPage >= activityTotalPages}
                     onClick={() => setActivityPage((p) => Math.min(activityTotalPages, p + 1))}
-                    className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 px-2 py-2 text-sm font-semibold text-neutral-700 shadow-sm transition hover:border-[#1D4ED8]/35 hover:bg-[#1D4ED8]/5 disabled:pointer-events-none disabled:opacity-40"
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-xl border border-neutral-200 px-3 text-sm font-semibold text-neutral-700 shadow-sm transition hover:border-[#1D4ED8]/35 hover:bg-[#1D4ED8]/5 disabled:pointer-events-none disabled:opacity-40"
                   >
                     <span className="hidden sm:inline">Siguiente</span>
                     <ChevronRightIcon className="h-4 w-4" />
@@ -302,7 +328,7 @@ export default function DashboardUserActividad({ turnos, turnosLoading, turnosEr
                         key={page}
                         type="button"
                         onClick={() => setActivityPage(page)}
-                        className={`min-w-9 rounded-lg px-2 py-1.5 text-sm font-semibold transition ${
+                        className={`min-h-11 min-w-11 rounded-xl px-3 py-2 text-sm font-semibold transition ${
                           activityPage === page
                             ? 'text-white shadow-sm'
                             : 'border border-neutral-200 bg-white text-neutral-600 hover:border-[#1D4ED8]/40 hover:bg-[#1D4ED8]/5'

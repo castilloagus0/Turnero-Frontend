@@ -4,7 +4,7 @@ import ScrollReveal from './ScrollReveal'
 
 import { Logo } from '../utils/logo'
 export const authFieldClass =
-  'w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition focus:border-[#0056b3] focus:ring-2 focus:ring-[#0056b3]/20'
+  'w-full min-h-12 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 outline-none transition sm:text-sm focus:border-[#0056b3] focus:ring-2 focus:ring-[#0056b3]/20'
 
 export const authLabelClass =
   'mb-2 block text-xs font-semibold uppercase tracking-wider text-neutral-500'
@@ -20,8 +20,8 @@ type AuthPageShellProps = {
 
 export default function AuthPageShell({ title, accent, subtitle, children }: AuthPageShellProps) {
   return (
-    <div className="min-h-full flex-1 bg-neutral-50 px-4 py-10 sm:px-6 sm:py-12 lg:py-16">
-      <div className="mx-auto w-full max-w-md">
+    <div className="min-h-full flex-1 bg-neutral-50 px-4 py-8 pb-[max(2rem,env(safe-area-inset-bottom,0px))] pt-[max(1.5rem,env(safe-area-inset-top,0px))] sm:px-6 sm:py-12 lg:py-16">
+      <div className="mx-auto w-full min-w-0 max-w-md">
         <ScrollReveal variant="fade" className="mb-10 flex justify-center">
           <Link to="/" className="flex items-center justify-center gap-3 transition hover:opacity-90 size-18">
             <Logo />

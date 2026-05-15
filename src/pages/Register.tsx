@@ -47,7 +47,7 @@ export default function Register() {
       accent="cuenta"
       subtitle="Unite y reservá turnos online, con recordatorios y beneficios para clientes frecuentes."
     >
-      <article className="rounded-xl border border-neutral-100 bg-white p-8 shadow-md shadow-neutral-200/60 sm:p-10">
+      <article className="rounded-xl border border-neutral-100 bg-white p-6 shadow-md shadow-neutral-200/60 sm:p-10">
         {error && (
           <p className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
             {error}
@@ -85,7 +85,7 @@ export default function Register() {
           </div>
 
           <div className="flex gap-3 rounded-lg border border-neutral-100 bg-neutral-50/80 p-4">
-            <input id="terms" name="terms" type="checkbox" checked={isAccepted} onChange={handleCheckboxChange} required className="mt-0.5 size-4 shrink-0 rounded border-neutral-300 text-[#0056b3] focus:ring-[#0056b3]/30" />
+            <input id="terms" name="terms" type="checkbox" checked={isAccepted} onChange={handleCheckboxChange} required className="mt-0.5 size-5 shrink-0 rounded border-neutral-300 text-[#0056b3] focus:ring-[#0056b3]/30" />
             <label htmlFor="terms" className="text-sm leading-snug text-neutral-600">
               Acepto los{' '}
               <a href="#" className="font-semibold text-[#0056b3] hover:underline" onClick={(e) => e.preventDefault()}>términos</a>{' '}
@@ -94,18 +94,16 @@ export default function Register() {
             </label>
           </div>
 
-          <div className='flex justify-center px-4' >
+          <div className="flex justify-center">
             <button
+              type="submit"
               disabled={!isAccepted}
-              className={`px-4 py-2 rounded-md font-bold transition-all w-100 ${
-                !isAccepted 
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none" 
-                  : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg"
+              className={`touch-manipulation min-h-12 w-full max-w-md rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-md transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 ${
+                !isAccepted ? 'bg-neutral-300' : 'bg-[#0056b3] hover:bg-[#004a9a]'
               }`}
             >
               Crear cuenta
-            </button>       
-            
+            </button>
           </div>   
         
         </form>

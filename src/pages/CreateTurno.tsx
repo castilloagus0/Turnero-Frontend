@@ -101,6 +101,73 @@ function CalendarSummaryIcon({ className }: { className?: string }) {
   )
 }
 
+const STEPS = [
+  { label: 'Servicio',      description: 'Elegí tu corte'         },
+  { label: 'Barbero',       description: 'Quién te atiende'        },
+  { label: 'Fecha y hora',  description: 'Cuándo venís'            },
+  { label: 'Pago',          description: 'Cómo abonás'             },
+] as const
+
+function StepperBar({
+  serviceId, barberId, horarioId, paymentId,
+}: { serviceId: string; barberId: string; horarioId: string; paymentId: string }) {
+  const completed = [
+    !!serviceId,
+    !!serviceId && !!barberId,
+    !!serviceId && !!barberId && !!horarioId,
+    !!serviceId && !!barberId && !!horarioId && !!paymentId,
+  ]
+  const currentStep = completed.filter(Boolean).length
+
+  return (
+      <div className="mt-6 -mx-1 overflow-x-auto px-1 pb-1 sm:mx-0 sm:overflow-visible sm:px-0">
+      <div className="flex min-w-[min(100%,20rem)] items-start sm:min-w-0">
+        {STEPS.map((step, i) => {
+          const done = completed[i]
+          const active = i === currentStep
+          const isLast = i === STEPS.length - 1
+          return (
+            <div key={step.label} className="flex min-w-0 flex-1 items-start">
+              {/* Circle + text */}
+              <div className="flex flex-col items-center">
+                <span
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors sm:h-9 sm:w-9 ${
+                    done
+                      ? 'bg-[#1d6bff] text-white'
+                      : active
+                      ? 'border-2 border-[#1d6bff] bg-white text-[#1d6bff]'
+                      : 'bg-neutral-100 text-neutral-400'
+                  }`}
+                >
+                  {done ? <CheckIcon className="h-4 w-4" /> : i + 1}
+                </span>
+                <div className="mt-2 text-center">
+                  <p className={`text-xs font-semibold leading-tight ${
+                    done || active ? 'text-neutral-900' : 'text-neutral-400'
+                  }`}>
+                    {step.label}
+                  </p>
+                  <p className={`mt-0.5 hidden text-[11px] leading-tight sm:block ${
+                    done || active ? 'text-neutral-500' : 'text-neutral-300'
+                  }`}>
+                    {step.description}
+                  </p>
+                </div>
+              </div>
+              {/* Connector line */}
+              {!isLast && (
+                <div className="mx-1 mt-4 h-0.5 min-w-[0.5rem] flex-1 rounded-full transition-colors sm:mx-2" style={{
+                  backgroundColor: done ? '#1d6bff' : '#e5e7eb',
+                }} />
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export default function CreateTurno() {
   const navigate = useNavigate()
   const [services, setServices] = useState<Servicios[]>([])
@@ -221,7 +288,8 @@ export default function CreateTurno() {
   }
 
   function horarioSlotClassName(h: Horarios): string {
-    const base = 'rounded-xl border px-4 py-2.5 text-sm font-medium transition'
+    const base =
+      'touch-manipulation min-h-11 rounded-xl border px-4 py-2.5 text-sm font-medium transition sm:min-h-0'
     const unavailable = isHorarioInPastForSelectedDate(selectedYmd, h.horaInicio, now)
     if (unavailable) {
       return `${base} border-neutral-200 text-neutral-400 bg-neutral-100/90 cursor-not-allowed`
@@ -384,7 +452,7 @@ export default function CreateTurno() {
 
   return (
     <div className="bg-white pb-8 text-neutral-800 sm:pb-10">
-      <main className="mx-auto max-w-6xl px-4 py-6 sm:py-8 md:px-6 md:py-10">
+      <main className="mx-auto max-w-6xl min-w-0 px-3 py-5 sm:px-4 sm:py-8 md:px-6 md:py-10">
         <div className="mb-10">
           <h1 className="text-3xl font-bold tracking-tight text-neutral-900 md:text-4xl">
             Reservar Turno
@@ -393,22 +461,7 @@ export default function CreateTurno() {
             Personaliza tu experiencia y asegura tu lugar en segundos.
           </p>
 
-          <div className="mt-8 rounded-2xl border border-neutral-100 bg-neutral-50/80 px-4 py-4 md:px-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1d6bff] text-sm font-semibold text-white">
-                  1
-                </span>
-                <span className="font-semibold text-neutral-900">Selección de Servicio</span>
-              </div>
-              <span className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
-                Paso 1 de 4
-              </span>
-            </div>
-            <div className="mt-4 h-2 overflow-hidden rounded-full bg-neutral-200">
-              <div className="h-full w-1/3 rounded-full bg-[#1d6bff]" />
-            </div>
-          </div>
+            <StepperBar serviceId={serviceId} barberId={barberId} horarioId={horarioId} paymentId={paymentId} />
         </div>
 
         {/* Servicios */}
@@ -424,7 +477,7 @@ export default function CreateTurno() {
                   key={s.id}
                   type="button"
                   onClick={() => setServiceId(String(s.id))}
-                  className={`group relative overflow-hidden rounded-2xl border bg-white text-left shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] ${sel ? 'border-[#1d6bff] ring-1 ring-[#1d6bff]' : 'border-neutral-100'}`}
+                  className={`group relative touch-manipulation overflow-hidden rounded-2xl border bg-white text-left shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition active:scale-[0.99] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] ${sel ? 'border-[#1d6bff] ring-1 ring-[#1d6bff]' : 'border-neutral-100'}`}
                 >
                   {sel && (
                     <span className="absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-[#1d6bff] text-white shadow-md">
@@ -455,7 +508,7 @@ export default function CreateTurno() {
         {/* Barberos */}
         <section className="mb-12">
           <h2 className="mb-4 text-lg font-semibold text-neutral-900">2. Elige un Barbero</h2>
-          <div className="flex flex-wrap gap-6 md:gap-8">
+          <div className="grid grid-cols-3 gap-3 sm:flex sm:flex-wrap sm:justify-start sm:gap-6 md:gap-8">
             {barbers.map((b) => {
               const sel = String(b.id) === barberId
               return (
@@ -463,15 +516,17 @@ export default function CreateTurno() {
                   key={b.id}
                   type="button"
                   onClick={() => setBarberId(String(b.id))}
-                  className="flex w-[100px] flex-col items-center text-center"
+                  className="flex min-w-0 flex-col items-center text-center touch-manipulation"
                 >
                   <span className="relative">
-                    <span className={`flex h-20 w-20 items-center justify-center rounded-full bg-neutral-100 ring-4 transition text-2xl font-bold text-neutral-500 ${sel ? 'ring-[#1d6bff]' : 'ring-transparent'}`}>
+                    <span className={`flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full bg-neutral-100 text-xl font-bold text-neutral-500 ring-4 transition sm:h-20 sm:w-20 sm:text-2xl ${sel ? 'ring-[#1d6bff]' : 'ring-transparent'}`}>
                       {b.nombre.charAt(0)}{b.apellido.charAt(0)}
                     </span>
                   </span>
-                  <span className="mt-3 font-semibold text-neutral-900">{b.nombre}</span>
-                  <span className="mt-0.5 text-[10px] font-medium uppercase text-neutral-500">
+                  <span className="mt-2 line-clamp-2 max-w-full px-0.5 text-sm font-semibold leading-tight text-neutral-900">
+                    {b.nombre}
+                  </span>
+                  <span className="mt-1 line-clamp-1 max-w-full text-[11px] font-medium uppercase tracking-wide text-neutral-500 sm:text-xs">
                     {b.rol}
                   </span>
                 </button>
@@ -494,7 +549,7 @@ export default function CreateTurno() {
                     type="button"
                     onClick={() => shiftMonth(-1)}
                     disabled={!canGoPrevMonth}
-                    className={`rounded-lg p-2 ${canGoPrevMonth ? 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800' : 'text-neutral-300 cursor-not-allowed'}`}
+                    className={`touch-manipulation flex min-h-11 min-w-11 items-center justify-center rounded-lg sm:min-h-0 sm:min-w-0 sm:p-2 ${canGoPrevMonth ? 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800' : 'cursor-not-allowed text-neutral-300'}`}
                     aria-label="Mes anterior"
                   >
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
@@ -504,7 +559,7 @@ export default function CreateTurno() {
                   <button
                     type="button"
                     onClick={() => shiftMonth(1)}
-                    className="rounded-lg p-2 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
+                    className="touch-manipulation flex min-h-11 min-w-11 items-center justify-center rounded-lg text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800 sm:min-h-0 sm:min-w-0 sm:p-2"
                     aria-label="Mes siguiente"
                   >
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
@@ -513,12 +568,12 @@ export default function CreateTurno() {
                   </button>
                 </div>
               </div>
-              <div className="mb-2 grid grid-cols-7 gap-1 text-center text-xs font-semibold text-neutral-400">
+                <div className="mb-2 grid grid-cols-7 gap-0.5 text-center text-[11px] font-semibold text-neutral-400 sm:gap-1 sm:text-xs">
                 {WEEKDAYS.map((d) => (
                   <span key={d}>{d}</span>
                 ))}
               </div>
-              <div className="grid grid-cols-7 gap-1">
+              <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
                 {grid.map((cell, i) => {
                   const muted = cell.inMonth !== 'current'
                   const selected = isSelectedCell(cell)
@@ -536,7 +591,7 @@ export default function CreateTurno() {
                       type="button"
                       onClick={() => onPickDay(cell)}
                       disabled={unavailable}
-                      className={`flex h-10 items-center justify-center rounded-full text-sm font-medium transition ${dayClass}`}
+                      className={`flex aspect-square min-h-10 w-full max-w-[2.75rem] items-center justify-center justify-self-center rounded-full text-sm font-medium transition sm:max-w-none ${dayClass}`}
                     >
                       {cell.day}
                     </button>
@@ -613,7 +668,7 @@ export default function CreateTurno() {
                     key={p.id}
                     type="button"
                     onClick={() => setPaymentId(p.id)}
-                    className={`group relative flex items-center gap-4 rounded-2xl border bg-white p-5 text-left shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] ${sel
+                    className={`group relative flex touch-manipulation items-center gap-4 rounded-2xl border bg-white p-4 text-left shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition active:scale-[0.99] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] sm:p-5 ${sel
                       ? 'border-[#1d6bff] ring-1 ring-[#1d6bff]'
                       : 'border-neutral-100'
                       }`}
@@ -692,7 +747,7 @@ export default function CreateTurno() {
             <button
               type="button"
               disabled={!isComplete || confirmandoTurno}
-              className={`inline-flex items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-sm font-semibold text-white shadow-md transition ${isComplete && !confirmandoTurno
+              className={`inline-flex min-h-12 w-full touch-manipulation items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-semibold text-white shadow-md transition active:scale-[0.99] sm:w-auto sm:min-w-[12rem] ${isComplete && !confirmandoTurno
                 ? 'bg-[#1d6bff] hover:bg-[#155eea] cursor-pointer'
                 : 'bg-neutral-300 cursor-not-allowed'
                 }`}
@@ -721,12 +776,12 @@ export default function CreateTurno() {
 
       {modalExitoReserva.open ? (
         <div
-          className="fixed inset-0 z-100 flex items-center justify-center bg-black/45 px-4 backdrop-blur-[2px]"
+          className="fixed inset-0 z-100 flex items-end justify-center bg-black/45 px-0 pb-0 backdrop-blur-[2px] sm:items-center sm:px-4 sm:pb-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="exito-reserva-titulo"
         >
-          <div className="w-full max-w-md rounded-2xl border border-neutral-200/90 bg-white p-6 shadow-[0_20px_50px_rgb(0,0,0,0.12)] sm:p-8">
+          <div className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-neutral-200/90 bg-white px-6 pt-6 shadow-[0_20px_50px_rgb(0,0,0,0.12)] sm:rounded-2xl sm:px-8 sm:pt-8 sm:pb-8 pb-[max(1.5rem,env(safe-area-inset-bottom,0px))]">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#e8f1ff] text-[#1d6bff]">
               <svg className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" aria-hidden>
                 <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
@@ -738,7 +793,7 @@ export default function CreateTurno() {
             <p className="mt-3 text-center text-sm leading-relaxed text-neutral-600">{modalExitoReserva.mensaje}</p>
             <button
               type="button"
-              className="mt-8 w-full rounded-xl bg-[#1d6bff] px-5 py-3.5 text-sm font-semibold text-white shadow-md transition hover:bg-[#155eea] active:scale-[0.99]"
+              className="mt-8 min-h-12 w-full touch-manipulation rounded-xl bg-[#1d6bff] px-5 py-3.5 text-sm font-semibold text-white shadow-md transition hover:bg-[#155eea] active:scale-[0.99]"
               onClick={() => {
                 setModalExitoReserva({ open: false, mensaje: '' })
                 navigate('/user-dashboard')

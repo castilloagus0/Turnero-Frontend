@@ -15,8 +15,11 @@ import UserDashboardHistorial from './pages/DashboardUser/UserDashboardHistorial
 import UserDashboardPerfil from './pages/DashboardUser/UserDashboardPerfil'
 import UserDashboardTurnos from './pages/DashboardUser/UserDashboardTurnos'
 import ResetPasswordUsuario from './pages/DashboardUser/ResetPasswordUsuario'
-import AdminDashboard from './pages/AdminDashboard'
-import AdminAnalytics from './pages/AdminAnalytics'
+import AdminDashboardLayout from './pages/DashboardAdmin/AdminDashboardLayout'
+import DashboardAdminProximosTurnos from './pages/DashboardAdmin/DashboardAdminProximosTurnos'
+import DashboardAdminUsuariosActivos from './pages/DashboardAdmin/DashboardAdminUsuariosActivos'
+import DashboardAdminServiciosActivos from './pages/DashboardAdmin/DashboardAdminServiciosActivos'
+import DashboardAdminAnaliticas from './pages/DashboardAdmin/DashboardAdminAnaliticas'
 import AdminTurnos from './pages/AdminTurnos'
 import { ResultPayment } from './pages/ReturnPayment'
 
@@ -48,12 +51,21 @@ function App() {
           {/* --- Rutas Protegidas: ADMIN --- */}
           {/* Solo entra si el rol es exactamente 'admin' */}
           <Route element={<ProtectedRoute allowedRoles={['barbero' , 'admin'] } />}>
-            <Route path="/admin-dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin-analytics" element={<AdminAnalytics />} />
-            <Route path="/admin/analytics" element={<AdminAnalytics />} />
-            <Route path="/admin-turnos" element={<AdminTurnos />} />
-            <Route path="/admin/turnos" element={<AdminTurnos />} />
+            <Route path="/admin-dashboard" element={<AdminDashboardLayout />}>
+              <Route index element={<DashboardAdminProximosTurnos />} />
+              <Route path="usuarios-activos" element={<DashboardAdminUsuariosActivos />} />
+              <Route path="servicios-activos" element={<DashboardAdminServiciosActivos />} />
+              <Route path="analiticas" element={<DashboardAdminAnaliticas />} />
+              <Route path="admin-turnos" element={<AdminTurnos />} />
+            </Route>
+            <Route path="/admin/dashboard" element={<AdminDashboardLayout />}>
+              <Route index element={<DashboardAdminProximosTurnos />} />
+              <Route path="usuarios-activos" element={<DashboardAdminUsuariosActivos />} />
+              <Route path="servicios-activos" element={<DashboardAdminServiciosActivos />} />
+              <Route path="analiticas" element={<DashboardAdminAnaliticas />} />
+              <Route path="admin-turnos" element={<AdminTurnos />} />
+            </Route>
+            <Route path="/admin-turnos" element={<Navigate to="/admin-dashboard/admin-turnos" replace />} />
           </Route>
 
           {/* --- Redirección por defecto --- */}
