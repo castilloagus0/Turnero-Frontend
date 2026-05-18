@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Barbero } from '../../interface/barbero.interface'
 import { getUserProfile } from '../../lib/userProfileStorage'
-import { obtenerUsuariosActivos } from '../../service/dashboardAdmin.service'
+import { getBarberos } from '../../service/barbero.service'
 import { SearchIcon } from './adminDashboardUi'
 import {
   FilaIconoAdmin,
@@ -38,9 +38,10 @@ export default function DashboardAdminUsuariosActivos() {
   useEffect(() => {
     let cancelado = false
     setEstado({ tipo: 'cargando' })
-    obtenerUsuariosActivos()
-      .then((usuarios) => {
+    getBarberos()
+      .then((data) => {
         if (cancelado) return
+        const usuarios = Array.isArray(data) ? (data as Barbero[]) : []
         setEstado({ tipo: 'ok', usuarios })
       })
       .catch((error: unknown) => {

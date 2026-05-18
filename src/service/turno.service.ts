@@ -1,4 +1,45 @@
-import axios from "axios";
+import axios from 'axios'
+import type { TurnosI } from '../interface/turnos.interface'
+import {
+  extraerMetaPaginacionDesdeRespuestaApi,
+  normalizarListaTurnosDesdeRespuestaApi,
+  type MetaPaginacionTurnos,
+} from '../utils/turnoResponseUtils'
+
+export type TurnosPaginados = {
+  turnos: TurnosI[]
+  meta: MetaPaginacionTurnos
+}
+
+export async function getTurnos(page: number, limit: number): Promise<TurnosPaginados> {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_URL_API}turno?page=${page}&limit=${limit}`)
+    const data = response.data
+    return {
+      turnos: normalizarListaTurnosDesdeRespuestaApi(data),
+      meta: extraerMetaPaginacionDesdeRespuestaApi(data, page, limit),
+    }
+  } catch (error: unknown) {
+    console.error('Error al obtener los turnos:', error)
+    throw error
+  }
+}
+
+export async function getTurnosProximos(page: number, limit: number): Promise<TurnosPaginados> {
+  try {
+    const response = await axios.get(
+      `${import.meta.env.VITE_URL_API}turno/proximos?page=${page}&limit=${limit}`,
+    )
+    const data = response.data
+    return {
+      turnos: normalizarListaTurnosDesdeRespuestaApi(data),
+      meta: extraerMetaPaginacionDesdeRespuestaApi(data, page, limit),
+    }
+  } catch (error: unknown) {
+    console.error('Error al obtener los turnos próximos:', error)
+    throw error
+  }
+}
 
 export async function createTurno(fecha: string, horarioId: number, usuarioId: number, servicioId: number, tipoPagoId: number, barberoId: number, preference_id: string) {
   try {

@@ -1,13 +1,13 @@
 import { useMemo, useState, useEffect } from 'react'
-import { getAdminAnalytics } from '../service/adminAnalytics.service'
-import type { AdminAnalyticsData, AnalyticsPeriod, BarberPerformance, PaymentMethodStat, RevenuePoint, ServiceStat } from '../mocks/adminAnalytics.mock'
+import type { AdminAnalyticsData, AnalyticsPeriod, BarberPerformance, PaymentMethodStat, RevenuePoint, ServiceStat } from '../types/adminAnalytics.types'
+
+export type AdminAnalyticsViewProps = {
+  data: AdminAnalyticsData
+  period: AnalyticsPeriod
+  onPeriodChange: (period: AnalyticsPeriod) => void
+}
 
 const PRIMARY = '#1D4ED8'
-
-type AsyncState =
-  | { status: 'loading' }
-  | { status: 'error'; message: string }
-  | { status: 'success'; data: AdminAnalyticsData }
 
 const PERIOD_LABEL: Record<AnalyticsPeriod, string> = {
   week: 'Semana',
@@ -135,61 +135,22 @@ function LineChart({
   )
 }
 
-export default function AdminAnalytics() {
-  const [period, setPeriod] = useState<AnalyticsPeriod>('week')
-  const [state, setState] = useState<AsyncState>({ status: 'loading' })
-  const [activeRevenuePoint, setActiveRevenuePoint] = useState(0)
+export function AdminAnalyticsView({ data, period, onPeriodChange }: AdminAnalyticsViewProps) {
+  const [activeRevenuePoint, setActiveRevenuePoint] = useState(
+    data.revenueHistory.length > 0 ? data.revenueHistory.length - 1 : 0,
+  )
   const [activePaymentMethod, setActivePaymentMethod] = useState(0)
 
   useEffect(() => {
-    let cancelled = false
-    setState({ status: 'loading' })
-
-    getAdminAnalytics(period)
-      .then((data) => {
-        if (cancelled) return
-        setState({ status: 'success', data })
-        setActiveRevenuePoint(data.revenueHistory.length > 0 ? data.revenueHistory.length - 1 : 0)
-        setActivePaymentMethod(0)
-      })
-      .catch((error: unknown) => {
-        if (cancelled) return
-        const message = error instanceof Error ? error.message : 'No se pudo cargar la información de analíticas.'
-        setState({ status: 'error', message })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [period])
+    setActiveRevenuePoint(data.revenueHistory.length > 0 ? data.revenueHistory.length - 1 : 0)
+    setActivePaymentMethod(0)
+  }, [data])
 
   const topBarber: BarberPerformance | null = useMemo(() => {
-    if (state.status !== 'success' || state.data.barberPerformance.length === 0) return null
-    return [...state.data.barberPerformance].sort((a, b) => b.revenue - a.revenue)[0]
-  }, [state])
+    if (data.barberPerformance.length === 0) return null
+    return [...data.barberPerformance].sort((a, b) => b.revenue - a.revenue)[0]
+  }, [data.barberPerformance])
 
-  if (state.status === 'loading') {
-    return (
-      <section className="mx-auto max-w-7xl p-4 sm:p-6">
-        <div className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
-          <p className="text-sm text-neutral-500">Cargando analíticas del negocio...</p>
-        </div>
-      </section>
-    )
-  }
-
-  if (state.status === 'error') {
-    return (
-      <section className="mx-auto max-w-7xl p-4 sm:p-6">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-8 shadow-sm">
-          <h1 className="text-lg font-bold text-red-800">Error al cargar analíticas</h1>
-          <p className="mt-2 text-sm text-red-700">{state.message}</p>
-        </div>
-      </section>
-    )
-  }
-
-  const data = state.data
   const activeRevenue = data.revenueHistory[activeRevenuePoint]
 
   return (
@@ -207,7 +168,7 @@ export default function AdminAnalytics() {
               <button
                 key={option}
                 type="button"
-                onClick={() => setPeriod(option)}
+                onClick={() => onPeriodChange(option)}
                 className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                   period === option ? 'bg-white text-[#1D4ED8] shadow-sm' : 'text-neutral-600 hover:text-neutral-900'
                 }`}

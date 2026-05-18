@@ -29,7 +29,7 @@ export default function AdminDashboardLayout() {
       onLogout={cerrarSesionYRedirigirAlLogin}
     >
       <div className="flex flex-1 flex-col overflow-auto bg-neutral-100/80">
-        <div className="mx-auto w-full max-w-6xl flex-1 px-3 py-5 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
+        <div className="mx-auto w-full max-w-7xl flex-1 px-3 py-5 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
           <Outlet />
         </div>
       </div>

@@ -1,6 +1,25 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getAdminTurnos } from '../service/adminTurnos.service'
-import type { AdminTurnosData, TurnoItem, TurnoStatus } from '../mocks/adminTurnos.mock'
+import type { TurnosI } from '../interface/turnos.interface'
+import {
+  claveEstadoTurno,
+  clasesBadgeEstadoTurno,
+  construirResumenTurnosAdmin,
+  formatoEstadoTurno,
+  formatoFechaTurno,
+  formatoHoraTurno,
+  medioPagoTurno,
+  nombreBarberoTurno,
+  nombreClienteTurno,
+  nombreServicioTurno,
+  normalizarFechaTurnoApi,
+  precioTurno,
+  telefonoClienteTurno,
+  turnoCoincideBusqueda,
+  etiquetaPorClaveEstado,
+  type ClaveEstadoTurno,
+} from '../utils/turnoDisplayUtils'
+import { PaginacionEstiloHistorial } from './DashboardAdmin/dashboardAdminListaActividadUi'
+import { useAdminTurnos } from './DashboardAdmin/useAdminTurnos'
 import {
   BanknoteIcon,
   CalendarIcon,
@@ -13,57 +32,7 @@ import {
 } from './DashboardAdmin/adminDashboardUi'
 import { getUserProfile } from '../lib/userProfileStorage'
 
-type AsyncState =
-  | { status: 'loading' }
-  | { status: 'error'; message: string }
-  | { status: 'success'; data: AdminTurnosData }
-
-const STATUS_LABEL: Record<TurnoStatus, string> = {
-  confirmado: 'Confirmado',
-  en_curso: 'En curso',
-  completado: 'Completado',
-  cancelado: 'Cancelado',
-  pendiente: 'Pendiente',
-}
-
-const STATUS_STYLE: Record<TurnoStatus, string> = {
-  confirmado: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
-  en_curso: 'bg-violet-50 text-violet-700 ring-1 ring-violet-200',
-  completado: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
-  cancelado: 'bg-red-50 text-red-700 ring-1 ring-red-200',
-  pendiente: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
-}
-
-function clasesEstadoTurno(status: TurnoStatus): string {
-  return STATUS_STYLE[status] ?? STATUS_STYLE.pendiente
-}
-
-function textoEstadoTurno(status: TurnoStatus): string {
-  return STATUS_LABEL[status] ?? STATUS_LABEL.pendiente
-}
-
-function formatDate(date: string): string {
-  const base = String(date ?? '').slice(0, 10)
-  const parsed = new Date(`${base || '1970-01-01'}T00:00:00`)
-  if (Number.isNaN(parsed.getTime())) return '—'
-  return new Intl.DateTimeFormat('es-AR', {
-    weekday: 'long',
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(parsed)
-}
-
-function matchesSearch(turno: TurnoItem, search: string): boolean {
-  const term = search.trim().toLowerCase()
-  if (!term) return true
-  return (
-    String(turno.cliente ?? '').toLowerCase().includes(term) ||
-    String(turno.barbero ?? '').toLowerCase().includes(term) ||
-    String(turno.servicio ?? '').toLowerCase().includes(term) ||
-    String(turno.medioPago ?? '').toLowerCase().includes(term)
-  )
-}
+const ESTADOS_FILTRO: ClaveEstadoTurno[] = ['pendiente', 'confirmado', 'en_curso', 'completado', 'cancelado']
 
 const FILTRO_ACTIVO = 'bg-[#1D4ED8] text-white shadow-sm'
 const FILTRO_INACTIVO =
@@ -74,67 +43,83 @@ const INPUT_BASE =
 
 export default function AdminTurnos() {
   const nombreAdmin = getUserProfile()?.name ?? 'Administrador'
+  const {
+    pagina,
+    setPagina,
+    turnos,
+    totalPaginas,
+    totalRegistros,
+    etiquetaRango,
+    cargandoTurnos,
+    errorCargaTurnos,
+  } = useAdminTurnos()
 
-  const [state, setState] = useState<AsyncState>({ status: 'loading' })
-  const [selectedStatus, setSelectedStatus] = useState<TurnoStatus | 'all'>('all')
+  const [selectedStatus, setSelectedStatus] = useState<ClaveEstadoTurno | 'all'>('all')
   const [search, setSearch] = useState('')
   const [selectedBarber, setSelectedBarber] = useState('all')
   const [selectedService, setSelectedService] = useState('all')
   const [selectedPayment, setSelectedPayment] = useState('all')
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTurnoId, setSelectedTurnoId] = useState<number | null>(null)
-  const turnos = state.status === 'success' ? state.data.turnos : []
+
+  const generatedAt = useMemo(() => new Date().toISOString(), [turnos])
+  const summary = useMemo(() => construirResumenTurnosAdmin(turnos), [turnos])
 
   useEffect(() => {
-    let cancelled = false
-    setState({ status: 'loading' })
+    setPagina(1)
+  }, [selectedStatus, selectedBarber, selectedService, selectedPayment, selectedDate, search, setPagina])
 
-    getAdminTurnos()
-      .then((data) => {
-        if (cancelled) return
-        setState({ status: 'success', data })
-        setSelectedTurnoId(data.turnos[0]?.id ?? null)
-      })
-      .catch((error: unknown) => {
-        if (cancelled) return
-        const message = error instanceof Error ? error.message : 'No fue posible cargar los turnos.'
-        setState({ status: 'error', message })
-      })
-
-    return () => {
-      cancelled = true
+  useEffect(() => {
+    if (turnos.length > 0 && selectedTurnoId == null) {
+      setSelectedTurnoId(turnos[0]?.id ?? null)
     }
-  }, [])
+  }, [turnos, selectedTurnoId])
 
   const availableBarbers = useMemo(
-    () => [...new Set(turnos.map((turno) => turno.barbero).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es')),
+    () =>
+      [...new Set(turnos.map((turno) => nombreBarberoTurno(turno)).filter(Boolean))].sort((a, b) =>
+        a.localeCompare(b, 'es'),
+      ),
     [turnos],
   )
 
   const availableServices = useMemo(
-    () => [...new Set(turnos.map((turno) => turno.servicio).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es')),
+    () =>
+      [...new Set(turnos.map((turno) => nombreServicioTurno(turno)).filter(Boolean))].sort((a, b) =>
+        a.localeCompare(b, 'es'),
+      ),
     [turnos],
   )
 
   const availablePaymentMethods = useMemo(
-    () => [...new Set(turnos.map((turno) => turno.medioPago).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es')),
+    () =>
+      [...new Set(turnos.map((turno) => medioPagoTurno(turno)).filter(Boolean))].sort((a, b) =>
+        a.localeCompare(b, 'es'),
+      ),
     [turnos],
   )
 
   const filteredTurnos = useMemo(
     () =>
-      turnos.filter((turno) => {
-        const matchStatus = selectedStatus === 'all' || turno.status === selectedStatus
-        const matchBarber = selectedBarber === 'all' || turno.barbero === selectedBarber
-        const matchService = selectedService === 'all' || turno.servicio === selectedService
-        const matchPayment = selectedPayment === 'all' || turno.medioPago === selectedPayment
-        const matchDate = !selectedDate || turno.fecha.startsWith(selectedDate)
-        return matchStatus && matchBarber && matchService && matchPayment && matchDate && matchesSearch(turno, search)
+      turnos.filter((turno: TurnosI) => {
+        const matchStatus = selectedStatus === 'all' || claveEstadoTurno(turno.estado) === selectedStatus
+        const matchBarber = selectedBarber === 'all' || nombreBarberoTurno(turno) === selectedBarber
+        const matchService = selectedService === 'all' || nombreServicioTurno(turno) === selectedService
+        const matchPayment = selectedPayment === 'all' || medioPagoTurno(turno) === selectedPayment
+        const matchDate = !selectedDate || normalizarFechaTurnoApi(turno.fecha) === selectedDate
+        return (
+          matchStatus &&
+          matchBarber &&
+          matchService &&
+          matchPayment &&
+          matchDate &&
+          turnoCoincideBusqueda(turno, search)
+        )
       }),
     [turnos, selectedStatus, selectedBarber, selectedService, selectedPayment, selectedDate, search],
   )
 
-  if (state.status === 'loading') {
+  if (cargandoTurnos) {
     return (
       <div className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
         <p className="text-sm text-neutral-500">Cargando turnos del negocio...</p>
@@ -142,21 +127,20 @@ export default function AdminTurnos() {
     )
   }
 
-  if (state.status === 'error') {
+  if (errorCargaTurnos) {
     return (
       <div className="rounded-2xl border border-red-200 bg-red-50 p-8 shadow-sm">
         <h1 className="text-lg font-bold text-red-800">Error al cargar turnos</h1>
-        <p className="mt-2 text-sm text-red-700">{state.message}</p>
+        <p className="mt-2 text-sm text-red-700">{errorCargaTurnos}</p>
       </div>
     )
   }
 
-  const { summary, generatedAt } = state.data
   const selectedTurno = filteredTurnos.find((turno) => turno.id === selectedTurnoId) ?? filteredTurnos[0] ?? null
 
   return (
     <div className="space-y-6">
-      <header className="overflow-hidden rounded-2xl border border-neutral-200/80 bg-gradient-to-br from-white via-white to-neutral-50/80 p-5 shadow-sm sm:p-6">
+      <header className="overflow-hidden rounded-2xl border border-neutral-200/80 bg-linear-to-br from-white via-white to-neutral-50/80 p-5 shadow-sm sm:p-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl">Hola, {nombreAdmin}</h1>
           <p className="mt-1 max-w-2xl text-sm text-neutral-600 sm:text-base">
@@ -217,7 +201,7 @@ export default function AdminTurnos() {
                 >
                   Todos ({summary.total})
                 </button>
-                {(Object.keys(STATUS_LABEL) as TurnoStatus[]).map((status) => (
+                {ESTADOS_FILTRO.map((status) => (
                   <button
                     key={status}
                     type="button"
@@ -226,7 +210,7 @@ export default function AdminTurnos() {
                       selectedStatus === status ? FILTRO_ACTIVO : FILTRO_INACTIVO
                     }`}
                   >
-                    {STATUS_LABEL[status]}
+                    {etiquetaPorClaveEstado(status)}
                   </button>
                 ))}
               </div>
@@ -305,7 +289,7 @@ export default function AdminTurnos() {
           </div>
 
           <div className="overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-sm transition-shadow hover:shadow-md">
-            <div className="border-b border-neutral-100 bg-gradient-to-r from-neutral-50/90 to-white px-4 py-3 sm:px-5">
+            <div className="border-b border-neutral-100 bg-linear-to-r from-neutral-50/90 to-white px-4 py-3 sm:px-5">
               <h2 className="text-base font-bold tracking-tight text-neutral-900">Listado de turnos</h2>
               <p className="mt-0.5 text-xs text-neutral-500">
                 {filteredTurnos.length} resultado{filteredTurnos.length === 1 ? '' : 's'}
@@ -327,19 +311,21 @@ export default function AdminTurnos() {
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <p className="text-sm font-bold text-neutral-900">{turno.cliente}</p>
-                          <p className="text-xs text-neutral-500">{turno.hora}</p>
+                          <p className="text-sm font-bold text-neutral-900">{nombreClienteTurno(turno)}</p>
+                          <p className="text-xs text-neutral-500">
+                            {formatoFechaTurno(turno)} · {formatoHoraTurno(turno)}
+                          </p>
                         </div>
                         <span
-                          className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold ${clasesEstadoTurno(turno.status)}`}
+                          className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold ${clasesBadgeEstadoTurno(turno.estado)}`}
                         >
-                          {textoEstadoTurno(turno.status)}
+                          {formatoEstadoTurno(turno)}
                         </span>
                       </div>
-                      <p className="text-sm text-neutral-600">{turno.servicio}</p>
+                      <p className="text-sm text-neutral-600">{nombreServicioTurno(turno)}</p>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-500">
-                        <span>{turno.barbero}</span>
-                        <span>{formatMonedaArs(turno.precio)}</span>
+                        <span>{nombreBarberoTurno(turno)}</span>
+                        <span>{formatMonedaArs(precioTurno(turno))}</span>
                       </div>
                     </button>
                   </li>
@@ -351,13 +337,14 @@ export default function AdminTurnos() {
               <table className="w-full min-w-[860px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-neutral-100 bg-neutral-50/90 text-[10px] font-bold uppercase tracking-wider text-neutral-500">
-                    <th className="px-4 py-3">Horario</th>
+                    <th className="px-4 py-3">Fecha</th>
+                    <th className="px-4 py-3">Hora</th>
+                    <th className="px-4 py-3 text-center">Estado</th>
                     <th className="px-4 py-3">Cliente</th>
                     <th className="px-4 py-3">Servicio</th>
                     <th className="px-4 py-3">Barbero</th>
                     <th className="px-4 py-3">Pago</th>
                     <th className="px-4 py-3 text-right">Precio</th>
-                    <th className="px-4 py-3 text-center">Estado</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
@@ -369,28 +356,31 @@ export default function AdminTurnos() {
                         selectedTurno?.id === turno.id ? 'bg-[#1D4ED8]/8' : ''
                       }`}
                     >
-                      <td className="whitespace-nowrap px-4 py-3 font-medium text-neutral-800">
-                        {turno.hora}
-                        <span className="mt-0.5 block text-xs font-normal text-neutral-500">{turno.duracionMin} min</span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <p className="font-semibold text-neutral-900">{turno.cliente}</p>
-                        <p className="text-xs text-neutral-500">{turno.clienteTelefono}</p>
-                      </td>
-                      <td className="max-w-[10rem] truncate px-4 py-3 text-neutral-700" title={turno.servicio}>
-                        {turno.servicio}
-                      </td>
-                      <td className="px-4 py-3 text-neutral-700">{turno.barbero}</td>
-                      <td className="px-4 py-3 text-neutral-700">{turno.medioPago}</td>
-                      <td className="whitespace-nowrap px-4 py-3 text-right font-semibold text-neutral-900">
-                        {formatMonedaArs(turno.precio)}
+                      <td className="whitespace-nowrap px-4 py-3 font-medium text-neutral-800">{formatoFechaTurno(turno)}</td>
+                      <td className="whitespace-nowrap px-4 py-3 text-neutral-700">
+                        {formatoHoraTurno(turno)}
+                        <span className="mt-0.5 block text-xs text-neutral-500">
+                          {turno.servicio?.duracionAproximada ?? 0} min
+                        </span>
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span
-                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${clasesEstadoTurno(turno.status)}`}
+                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${clasesBadgeEstadoTurno(turno.estado)}`}
                         >
-                          {textoEstadoTurno(turno.status)}
+                          {formatoEstadoTurno(turno)}
                         </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="font-semibold text-neutral-900">{nombreClienteTurno(turno)}</p>
+                        <p className="text-xs text-neutral-500">{telefonoClienteTurno(turno)}</p>
+                      </td>
+                      <td className="max-w-40 truncate px-4 py-3 text-neutral-700" title={nombreServicioTurno(turno)}>
+                        {nombreServicioTurno(turno)}
+                      </td>
+                      <td className="px-4 py-3 text-neutral-700">{nombreBarberoTurno(turno)}</td>
+                      <td className="px-4 py-3 text-neutral-700">{medioPagoTurno(turno)}</td>
+                      <td className="whitespace-nowrap px-4 py-3 text-right font-semibold text-neutral-900">
+                        {formatMonedaArs(precioTurno(turno))}
                       </td>
                     </tr>
                   ))}
@@ -402,12 +392,19 @@ export default function AdminTurnos() {
                 </div>
               ) : null}
             </div>
+            <PaginacionEstiloHistorial
+              pagina={pagina}
+              totalPaginas={totalPaginas}
+              etiquetaRango={etiquetaRango}
+              totalFiltrados={totalRegistros}
+              onCambiarPagina={setPagina}
+            />
           </div>
         </article>
 
         <aside className="xl:sticky xl:top-6 xl:self-start">
           <div className="overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-sm">
-            <div className="border-b border-neutral-100 bg-gradient-to-r from-neutral-50/90 to-white px-4 py-3">
+            <div className="border-b border-neutral-100 bg-linear-to-r from-neutral-50/90 to-white px-4 py-3">
               <h2 className="text-base font-bold tracking-tight text-neutral-900">Detalle del turno</h2>
               <p className="text-xs text-neutral-500">Seleccioná una fila o tarjeta</p>
             </div>
@@ -416,47 +413,50 @@ export default function AdminTurnos() {
                 <div className="space-y-4 text-sm">
                   <div className="rounded-xl border border-neutral-100 bg-neutral-50/80 p-4">
                     <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">Fecha y horario</p>
-                    <p className="mt-1 font-semibold text-neutral-900">{formatDate(selectedTurno.fecha)}</p>
+                    <p className="mt-1 font-semibold text-neutral-900">{formatoFechaTurno(selectedTurno)}</p>
                     <p className="text-neutral-600">
-                      {selectedTurno.hora} · {selectedTurno.duracionMin} min
+                      {formatoHoraTurno(selectedTurno)} · {selectedTurno.servicio?.duracionAproximada ?? 0} min
                     </p>
                   </div>
 
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">Cliente</p>
-                    <p className="mt-1 font-semibold text-neutral-900">{selectedTurno.cliente}</p>
-                    <p className="text-neutral-600">{selectedTurno.clienteTelefono}</p>
+                    <p className="mt-1 font-semibold text-neutral-900">{nombreClienteTurno(selectedTurno)}</p>
+                    <p className="text-neutral-600">{telefonoClienteTurno(selectedTurno)}</p>
                   </div>
 
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">Servicio</p>
-                    <p className="mt-1 font-semibold text-neutral-900">{selectedTurno.servicio}</p>
-                    <p className="text-neutral-600">{formatMonedaArs(selectedTurno.precio)}</p>
+                    <p className="mt-1 font-semibold text-neutral-900">{nombreServicioTurno(selectedTurno)}</p>
+                    <p className="text-neutral-600">{formatMonedaArs(precioTurno(selectedTurno))}</p>
                   </div>
 
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">Barbero</p>
-                    <p className="mt-1 font-semibold text-neutral-900">{selectedTurno.barbero}</p>
+                    <p className="mt-1 font-semibold text-neutral-900">{nombreBarberoTurno(selectedTurno)}</p>
                   </div>
 
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">Medio de pago</p>
-                    <p className="mt-1 font-semibold text-neutral-900">{selectedTurno.medioPago}</p>
+                    <p className="mt-1 font-semibold text-neutral-900">{medioPagoTurno(selectedTurno)}</p>
                   </div>
 
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">Estado</p>
                     <span
-                      className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${clasesEstadoTurno(selectedTurno.status)}`}
+                      className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${clasesBadgeEstadoTurno(selectedTurno.estado)}`}
                     >
-                      {textoEstadoTurno(selectedTurno.status)}
+                      {formatoEstadoTurno(selectedTurno)}
                     </span>
                   </div>
 
-                  {selectedTurno.observaciones ? (
+                  {selectedTurno.resenia &&
+                  typeof selectedTurno.resenia === 'object' &&
+                  'comentario' in selectedTurno.resenia &&
+                  selectedTurno.resenia.comentario ? (
                     <div className="rounded-xl border border-amber-200/80 bg-amber-50/90 p-3">
                       <p className="text-[10px] font-bold uppercase tracking-wide text-amber-800">Observaciones</p>
-                      <p className="mt-1 text-amber-950">{selectedTurno.observaciones}</p>
+                      <p className="mt-1 text-amber-950">{String(selectedTurno.resenia.comentario)}</p>
                     </div>
                   ) : null}
                 </div>

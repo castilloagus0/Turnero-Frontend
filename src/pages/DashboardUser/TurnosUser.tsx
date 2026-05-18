@@ -14,7 +14,7 @@ import {
   turnoTieneAnticipacionMinimaHoras,
 } from './dashboardUserUtils'
 import { cancelarTurno, reagendarTurno } from '../../service/turno.service'
-import { getHorarios } from '../../service/horarios.service'
+import { getHorarios, normalizarListaHorarios } from '../../service/horarios.service'
 
 const PRIMARY = '#1D4ED8'
 
@@ -109,16 +109,6 @@ function esHorarioPasadoParaDia(isoDia: string, horaInicio: string, at: Date): b
   return start.getTime() < at.getTime()
 }
 
-function normalizarListaHorariosApi(data: unknown): Horarios[] {
-  if (Array.isArray(data)) return data as Horarios[]
-  if (data && typeof data === 'object') {
-    const o = data as { data?: unknown; horarios?: unknown }
-    if (Array.isArray(o.data)) return o.data as Horarios[]
-    if (Array.isArray(o.horarios)) return o.horarios as Horarios[]
-  }
-  return []
-}
-
 type AlertaTurno = {
   variant: 'error' | 'success'
   titulo: string
@@ -177,7 +167,7 @@ export default function TurnosUser({
     getHorarios()
       .then((raw) => {
         if (!montado) return
-        const list = normalizarListaHorariosApi(raw).filter((h) => h.activo !== false)
+        const list = normalizarListaHorarios(raw).filter((h) => h.activo !== false)
         setHorariosLista(list)
       })
       .catch(() => {

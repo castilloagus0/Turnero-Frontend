@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Servicios } from '../../interface/servicios.interface'
 import { getUserProfile } from '../../lib/userProfileStorage'
-import { obtenerServicios } from '../../service/dashboardAdmin.service'
+import { getServicios } from '../../service/servicios.service'
 import { formatMonedaArs, SearchIcon } from './adminDashboardUi'
 import {
   FilaIconoAdmin,
@@ -31,10 +31,10 @@ export default function DashboardAdminServiciosActivos() {
   useEffect(() => {
     let cancelado = false
     setEstado({ tipo: 'cargando' })
-    obtenerServicios()
-      .then((servicios) => {
+    getServicios()
+      .then((data) => {
         if (cancelado) return
-        setEstado({ tipo: 'ok', servicios })
+        setEstado({ tipo: 'ok', servicios: data.filter((s) => s.activo) })
       })
       .catch((error: unknown) => {
         if (cancelado) return
@@ -126,15 +126,17 @@ export default function DashboardAdminServiciosActivos() {
               <table className="w-full min-w-[520px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-neutral-100 bg-neutral-50/90 text-[10px] font-bold uppercase tracking-wider text-neutral-500">
-                    <th className="px-4 py-3 sm:px-6">Servicio</th>
-                    <th className="hidden px-2 py-3 md:table-cell">Duración</th>
-                    <th className="px-2 py-3 text-right sm:px-6">Precio</th>
+                    <th className="px-4 py-3 sm:px-6">Nombre</th>
+                    <th className="hidden px-2 py-3 md:table-cell">Descripción</th>
+                    <th className="px-2 py-3">Duración</th>
+                    <th className="px-2 py-3 text-right">Precio</th>
+                    <th className="px-2 py-3 text-center sm:px-6">Estado</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
                   {!cargando && !error && trozo.length === 0 ? (
                     <tr>
-                      <td colSpan={3} className="px-4 py-10 text-center text-sm text-neutral-500 sm:px-6">
+                      <td colSpan={5} className="px-4 py-10 text-center text-sm text-neutral-500 sm:px-6">
                         No hay registros para mostrar.
                       </td>
                     </tr>
@@ -152,11 +154,19 @@ export default function DashboardAdminServiciosActivos() {
                             </div>
                           </div>
                         </td>
-                        <td className="hidden whitespace-nowrap px-2 py-3 text-neutral-600 md:table-cell">
+                        <td className="hidden max-w-xs truncate px-2 py-3 text-neutral-600 md:table-cell" title={servicio.descripcion}>
+                          {servicio.descripcion || '—'}
+                        </td>
+                        <td className="whitespace-nowrap px-2 py-3 text-neutral-600">
                           {servicio.duracionAproximada} min
                         </td>
-                        <td className="whitespace-nowrap px-2 py-3 text-right text-base font-bold tabular-nums text-neutral-900 sm:px-6">
+                        <td className="whitespace-nowrap px-2 py-3 text-right font-bold tabular-nums text-neutral-900">
                           {formatMonedaArs(Number(servicio.precio) || 0)}
+                        </td>
+                        <td className="px-2 py-3 text-center sm:px-6">
+                          <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
+                            {servicio.activo ? 'Activo' : 'Inactivo'}
+                          </span>
                         </td>
                       </tr>
                     ))

@@ -1,191 +1,180 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import type { AgendaDiaAdmin } from '../../service/dashboardAdmin.service'
-import { obtenerAgendaDelDiaParaPanelAdmin } from '../../service/dashboardAdmin.service'
-import type { TurnoItem } from '../../mocks/adminTurnos.mock'
+import {
+  clasesBadgeEstadoTurnoApi,
+  etiquetaEstadoTurnoApi,
+  formatoFechaTurno,
+  formatoHoraTurno,
+  nombreBarberoTurno,
+  nombreClienteTurno,
+  nombreServicioTurno,
+} from '../../utils/turnoDisplayUtils'
+import { PaginacionEstiloHistorial } from './dashboardAdminListaActividadUi'
+import { useAdminTurnosProximos } from './useAdminTurnosProximos'
 import {
   AgendaRow,
-  BanknoteIcon,
   CalendarIcon,
-  etiquetaEstadoParaAgenda,
   formatFechaHora24hEsAr,
-  formatMonedaArs,
   inicialesDesdeNombreCompleto,
   PRIMARY_ADMIN,
   ScissorsIcon,
-  TarjetaStatAdmin,
-  WalletIcon,
 } from './adminDashboardUi'
-
-type EstadoCarga = { tipo: 'cargando' } | { tipo: 'error'; mensaje: string } | { tipo: 'ok'; datos: AgendaDiaAdmin }
-
-// Ubica el turno en curso o, si no hay, el primero de la cola para el bloque lateral "siguiente".
-function resolverTurnoDestacado(turnos: TurnoItem[]): TurnoItem | null {
-  const enCurso = turnos.find((t) => t.status === 'en_curso')
-  if (enCurso) return enCurso
-  return turnos[0] ?? null
-}
 
 export default function DashboardAdminProximosTurnos() {
   const location = useLocation()
-  const [estado, setEstado] = useState<EstadoCarga>({ tipo: 'cargando' })
+  const {
+    pagina,
+    setPagina,
+    turnos,
+    totalPaginas,
+    totalRegistros,
+    etiquetaRango,
+    cargandoTurnos,
+    errorCargaTurnos,
+  } = useAdminTurnosProximos()
 
   const basePath = useMemo(
     () => (location.pathname.startsWith('/admin/dashboard') ? '/admin/dashboard' : '/admin-dashboard'),
     [location.pathname],
   )
 
-  useEffect(() => {
-    let cancelado = false
-    setEstado({ tipo: 'cargando' })
-    obtenerAgendaDelDiaParaPanelAdmin()
-      .then((datos) => {
-        if (cancelado) return
-        setEstado({ tipo: 'ok', datos })
-      })
-      .catch((error: unknown) => {
-        if (cancelado) return
-        const mensaje = error instanceof Error ? error.message : 'No se pudo cargar la agenda del día.'
-        setEstado({ tipo: 'error', mensaje })
-      })
-    return () => {
-      cancelado = true
-    }
-  }, [])
+  const generadoEn = useMemo(() => new Date().toISOString(), [turnos])
+  const primerTurno = turnos[0] ?? null
 
-  const destacado = useMemo(() => {
-    if (estado.tipo !== 'ok') return null
-    return resolverTurnoDestacado(estado.datos.proximosTurnos)
-  }, [estado])
-
-  if (estado.tipo === 'cargando') {
+  if (cargandoTurnos) {
     return (
-      <div className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
+      <div className="flex min-h-[240px] w-full items-center justify-center rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
         <p className="text-sm text-neutral-500">Cargando próximos turnos...</p>
       </div>
     )
   }
 
-  if (estado.tipo === 'error') {
+  if (errorCargaTurnos) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-8 shadow-sm">
+      <div className="w-full rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm sm:p-8">
         <p className="text-sm font-semibold text-red-800">No se pudo cargar la agenda</p>
-        <p className="mt-1 text-sm text-red-700">{estado.mensaje}</p>
+        <p className="mt-1 text-sm text-red-700">{errorCargaTurnos}</p>
       </div>
     )
   }
 
-  const { resumenDelDia, proximosTurnos, generadoEn } = estado.datos
-  const citasActivas = resumenDelDia.confirmados + resumenDelDia.enCurso + resumenDelDia.pendientes
-
   return (
-    <div className="flex flex-1 flex-col gap-6 lg:flex-row">
-      <main className="min-w-0 flex-1 space-y-6">
+    <div className="flex w-full min-w-0 flex-col gap-5 sm:gap-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs font-medium text-neutral-500">
           Última actualización:{' '}
           <time dateTime={generadoEn} className="text-neutral-600">
             {formatFechaHora24hEsAr(generadoEn)}
           </time>
         </p>
+        <Link
+          to={`${basePath}/admin-turnos`}
+          className="inline-flex w-fit items-center gap-1 text-sm font-semibold text-[#1D4ED8] transition hover:underline"
+        >
+          Ver gestión completa
+          <span aria-hidden>→</span>
+        </Link>
+      </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <TarjetaStatAdmin
-            titulo="Turnos del día"
-            valor={String(resumenDelDia.total)}
-            detalle={`${resumenDelDia.completados} hechos`}
-            variante="emerald"
-            icono={<BanknoteIcon className="h-6 w-6" />}
-          />
-          <TarjetaStatAdmin
-            titulo="En agenda activa"
-            valor={String(citasActivas)}
-            detalle={`${resumenDelDia.enCurso} en curso`}
-            variante="blue"
-            icono={<CalendarIcon className="h-6 w-6" />}
-          />
-          <TarjetaStatAdmin
-            titulo="Ingresos cerrados (hoy)"
-            valor={formatMonedaArs(resumenDelDia.ingresos)}
-            variante="orange"
-            icono={<WalletIcon className="h-6 w-6" />}
-          />
-        </div>
-
-        <section className="overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-sm transition-shadow hover:shadow-md">
-          <div className="flex flex-col gap-4 border-b border-neutral-100 bg-gradient-to-r from-neutral-50/90 to-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-lg font-bold tracking-tight text-neutral-900">Cola del día</h2>
-            <Link
-              to={`${basePath}/admin-turnos`}
-              className="inline-flex items-center gap-1 text-sm font-semibold text-[#1D4ED8] transition hover:underline"
-            >
-              Ver gestión completa
-              <span aria-hidden>→</span>
-            </Link>
+      {/* Tarjetas superiores: móvil apiladas, desktop en fila */}
+      <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {/* Total próximos */}
+        <article className="flex h-full min-h-[148px] flex-col justify-between rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm ring-1 ring-neutral-100/80 transition-shadow hover:shadow-md">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1D4ED8]">
+              <CalendarIcon className="h-6 w-6" />
+            </div>
+            <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold text-neutral-600">
+              {etiquetaRango}
+            </span>
           </div>
-          <div>
-            {proximosTurnos.length === 0 ? (
-              <p className="px-5 py-10 text-center text-sm text-neutral-500">No hay turnos pendientes para hoy.</p>
-            ) : (
-              proximosTurnos.map((turno) => (
-                <AgendaRow
-                  key={turno.id}
-                  time={turno.hora}
-                  duration={`${turno.duracionMin} MIN`}
-                  client={turno.cliente}
-                  clientInitials={inicialesDesdeNombreCompleto(turno.cliente)}
-                  service={turno.servicio}
-                  status={etiquetaEstadoParaAgenda(turno.status)}
-                  barber={turno.barbero}
-                  highlight={turno.status === 'en_curso'}
-                />
-              ))
-            )}
+          <div className="mt-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Próximos turnos</p>
+            <p className="mt-1 text-3xl font-bold tracking-tight text-neutral-900 tabular-nums">{totalRegistros}</p>
           </div>
-        </section>
-      </main>
+        </article>
 
-      <aside className="flex w-full shrink-0 flex-col gap-5 lg:w-[300px] xl:w-[320px]">
-        <section
-          className="overflow-hidden rounded-2xl p-5 text-white shadow-lg shadow-blue-900/15"
+        {/* Resumen */}
+
+        {/* Siguiente en cola */}
+        <article
+          className="flex h-full min-h-[148px] flex-col rounded-2xl p-5 text-white shadow-md shadow-blue-900/20 md:col-span-2 xl:col-span-1"
           style={{ backgroundColor: PRIMARY_ADMIN }}
         >
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/80">ATENCIÓN INMEDIATA</p>
-          {destacado ? (
-            <>
-              <p className="mt-3 text-xl font-bold">{destacado.cliente}</p>
-              <div className="mt-3 flex items-start gap-2 text-sm text-white/95">
-                <ScissorsIcon className="mt-0.5 h-5 w-5 shrink-0 text-white/90" />
-                <span>{destacado.servicio}</span>
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/75">Siguiente en cola</p>
+          {primerTurno ? (
+            <div className="mt-3 flex min-h-0 flex-1 flex-col justify-center">
+              <p className="truncate text-lg font-bold sm:text-xl">{nombreClienteTurno(primerTurno)}</p>
+              <div className="mt-2 flex items-start gap-2 text-sm text-white/95">
+                <ScissorsIcon className="mt-0.5 h-4 w-4 shrink-0 text-white/90 sm:h-5 sm:w-5" />
+                <span className="line-clamp-2">{nombreServicioTurno(primerTurno)}</span>
               </div>
-              <p className="mt-2 text-sm text-white/90">
-                {destacado.hora} · {destacado.barbero}
+              <p className="mt-2 text-xs text-white/90 sm:text-sm">
+                <span className="font-medium">{formatoFechaTurno(primerTurno)}</span>
+                <span className="mx-1.5 text-white/50">·</span>
+                <span>{formatoHoraTurno(primerTurno)}</span>
+                <span className="mx-1.5 text-white/50">·</span>
+                <span>{etiquetaEstadoTurnoApi(primerTurno.estado)}</span>
               </p>
-            </>
+              <p className="mt-1 truncate text-xs text-white/75">{nombreBarberoTurno(primerTurno)}</p>
+            </div>
           ) : (
-            <p className="mt-3 text-sm text-white/90">No hay turnos en cola por ahora.</p>
+            <p className="mt-4 flex flex-1 items-center text-sm text-white/90">No hay turnos en cola por ahora.</p>
           )}
-        </section>
+        </article>
+      </div>
 
-        <section className="rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm">
-          <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-neutral-400">RESUMEN RÁPIDO</h3>
-          <div className="mt-4 space-y-2 text-sm">
-            <div className="flex justify-between text-neutral-600">
-              <span>Pendientes</span>
-              <span className="font-bold text-neutral-900">{resumenDelDia.pendientes}</span>
-            </div>
-            <div className="flex justify-between text-neutral-600">
-              <span>Confirmados</span>
-              <span className="font-bold text-neutral-900">{resumenDelDia.confirmados}</span>
-            </div>
-            <div className="flex justify-between text-neutral-600">
-              <span>Analíticas</span>
-              <Link to={`${basePath}/analiticas`} className="font-semibold text-[#1D4ED8] transition hover:underline">
-                Abrir
-              </Link>
-            </div>
-          </div>
-        </section>
-      </aside>
+      {/* Tabla / lista a ancho completo */}
+      <section className="w-full overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-sm ring-1 ring-neutral-100/80">
+        <header className="border-b border-neutral-100 bg-linear-to-r from-neutral-50/90 to-white px-4 py-4 sm:px-6 lg:px-8">
+          <h2 className="text-lg font-bold tracking-tight text-neutral-900">Listado de próximos turnos</h2>
+          <p className="mt-0.5 text-xs text-neutral-500">Ordenados por fecha y hora según el servidor.</p>
+        </header>
+
+        {/* Cabecera de columnas (desktop) */}
+        <div
+          className="hidden border-b border-neutral-100 bg-neutral-50/80 px-6 py-3 text-xs font-semibold uppercase tracking-wide text-neutral-500 lg:grid lg:grid-cols-4 lg:items-center lg:gap-8 lg:px-8"
+          aria-hidden
+        >
+          <span>Fecha / hora</span>
+          <span>Cliente y servicio</span>
+          <span>Estado</span>
+          <span>Barbero</span>
+        </div>
+
+        <div className="divide-y divide-neutral-100">
+          {turnos.length === 0 ? (
+            <p className="px-4 py-12 text-center text-sm text-neutral-500 sm:px-6 lg:px-8">
+              {totalRegistros === 0
+                ? 'No hay turnos próximos en el negocio.'
+                : 'No hay turnos en esta página.'}
+            </p>
+          ) : (
+            turnos.map((turno) => (
+              <AgendaRow
+                key={turno.id}
+                className="border-b-0 px-4 sm:px-6 lg:grid lg:grid-cols-4 lg:items-center lg:gap-8 lg:px-8"
+                fecha={formatoFechaTurno(turno)}
+                hora={formatoHoraTurno(turno)}
+                estado={etiquetaEstadoTurnoApi(turno.estado)}
+                estadoClassName={clasesBadgeEstadoTurnoApi(turno.estado)}
+                client={nombreClienteTurno(turno)}
+                clientInitials={inicialesDesdeNombreCompleto(nombreClienteTurno(turno))}
+                service={nombreServicioTurno(turno)}
+                barber={nombreBarberoTurno(turno)}
+              />
+            ))
+          )}
+        </div>
+
+        <PaginacionEstiloHistorial
+          pagina={pagina}
+          totalPaginas={totalPaginas}
+          etiquetaRango={etiquetaRango}
+          totalFiltrados={totalRegistros}
+          onCambiarPagina={setPagina}
+        />
+      </section>
     </div>
   )
 }

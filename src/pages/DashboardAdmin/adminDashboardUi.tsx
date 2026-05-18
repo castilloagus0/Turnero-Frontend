@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import type { TurnoStatus } from '../../mocks/adminTurnos.mock'
 
 export const PRIMARY_ADMIN = '#1D4ED8'
 
@@ -158,69 +157,45 @@ export function WalletIcon({ className }: { className?: string }) {
   )
 }
 
-export function DotsVerticalIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <circle cx="12" cy="5" r="1.5" />
-      <circle cx="12" cy="12" r="1.5" />
-      <circle cx="12" cy="19" r="1.5" />
-    </svg>
-  )
-}
-
-const ETIQUETA_ESTADO_AGENDA: Record<TurnoStatus, 'Confirmada' | 'En Curso' | 'Pendiente'> = {
-  confirmado: 'Confirmada',
-  en_curso: 'En Curso',
-  pendiente: 'Pendiente',
-  completado: 'Confirmada',
-  cancelado: 'Pendiente',
-}
-
-// Traduce el estado técnico del turno a la etiqueta corta que muestra la fila de agenda.
-export function etiquetaEstadoParaAgenda(status: TurnoStatus): 'Confirmada' | 'En Curso' | 'Pendiente' {
-  return ETIQUETA_ESTADO_AGENDA[status]
-}
-
 type AgendaRowProps = {
-  time: string
-  duration: string
+  fecha: string
+  hora: string
+  estado: string
+  estadoClassName?: string
   client: string
   clientInitials: string
   clientImage?: string
   service: string
-  status: 'Confirmada' | 'En Curso' | 'Pendiente'
   barber: string
   highlight?: boolean
+  className?: string
 }
 
 export function AgendaRow({
-  time,
-  duration,
+  fecha,
+  hora,
+  estado,
+  estadoClassName = 'bg-neutral-100 text-neutral-600 ring-1 ring-neutral-200',
   client,
   clientInitials,
   clientImage,
   service,
-  status,
   barber,
   highlight,
+  className = '',
 }: AgendaRowProps) {
-  const statusStyles = {
-    Confirmada: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
-    'En Curso': 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
-    Pendiente: 'bg-neutral-100 text-neutral-600 ring-1 ring-neutral-200',
-  }
 
   return (
     <div
       className={`flex flex-wrap items-center gap-3 border-b border-neutral-100 px-4 py-4 last:border-0 sm:flex-nowrap ${
         highlight ? 'border-l-4 border-l-[#1D4ED8] bg-blue-50/40 pl-3' : ''
-      }`}
+      } ${className}`}
     >
-      <div className={`min-w-[88px] text-sm font-semibold ${highlight ? 'text-[#1D4ED8]' : 'text-neutral-900'}`}>
-        {time}
-        <span className="mt-0.5 block text-xs font-normal text-neutral-500">{duration}</span>
+      <div className="min-w-[6.5rem] shrink-0 text-sm sm:min-w-[7.5rem] lg:min-w-0 lg:w-full">
+        <p className={`font-semibold ${highlight ? 'text-[#1D4ED8]' : 'text-neutral-900'}`}>{fecha}</p>
+        <p className="mt-0.5 text-xs font-medium text-neutral-600">{hora}</p>
       </div>
-      <div className="flex min-w-0 flex-1 items-center gap-3">
+      <div className="flex min-w-0 flex-1 basis-0 items-center gap-3 lg:w-full">
         {clientImage ? (
           <img
             src={clientImage}
@@ -240,17 +215,15 @@ export function AgendaRow({
           </p>
         </div>
       </div>
-      <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[status]}`}>{status}</span>
-      <p className="hidden w-28 shrink-0 text-sm text-neutral-600 sm:block">
-        Barbero: <span className="font-medium text-neutral-800">{barber}</span>
-      </p>
-      <button
-        type="button"
-        className="shrink-0 rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
-        aria-label="Más opciones"
+      <span
+        className={`w-fit shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold sm:min-w-[5.5rem] sm:text-center lg:min-w-[12rem] ${estadoClassName}`}
       >
-        <DotsVerticalIcon className="h-5 w-5" />
-      </button>
+        {estado}
+      </span>
+      <p className="hidden min-w-[7rem] shrink-0 text-sm text-neutral-600 sm:block lg:min-w-0 lg:w-full">
+        <span className="text-neutral-500 lg:hidden">Barbero: </span>
+        <span className="font-medium text-neutral-800">{barber}</span>
+      </p>
     </div>
   )
 }

@@ -1,13 +1,10 @@
 import { type ReactNode, useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { getUserProfile } from '../../lib/userProfileStorage'
 import {
   CalendarIcon,
   ChartIcon,
   GridIcon,
-  PRIMARY_ADMIN,
   ScissorsIcon,
-  UserCircleOutlineIcon,
   UsersIcon,
 } from './adminDashboardUi'
 
@@ -30,8 +27,18 @@ function GearIcon({ className }: { className?: string }) {
   )
 }
 
+function ClockIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 function tituloVistaAdmin(pathname: string): string {
   if (pathname.includes('/admin-turnos')) return 'Gestión de turnos'
+  if (pathname.includes('/horarios')) return 'Horarios'
   if (pathname.includes('/usuarios-activos')) return 'Usuarios activos'
   if (pathname.includes('/servicios-activos')) return 'Servicios activos'
   if (pathname.includes('/analiticas')) return 'Analíticas'
@@ -52,22 +59,9 @@ function navClassName({ isActive }: { isActive: boolean }): string {
   }`
 }
 
-function useNombreUsuarioLogueado(): string {
-  const [nombre, setNombre] = useState(() => getUserProfile()?.name ?? 'Usuario')
-
-  useEffect(() => {
-    const sync = () => setNombre(getUserProfile()?.name ?? 'Usuario')
-    window.addEventListener('storage', sync)
-    return () => window.removeEventListener('storage', sync)
-  }, [])
-
-  return nombre
-}
-
 export default function AdminDashboardShell({ basePath, navOpen, onNavOpenChange, onLogout, children }: Props) {
   const location = useLocation()
   const tituloVista = tituloVistaAdmin(location.pathname)
-  const nombreUsuario = useNombreUsuarioLogueado()
 
   useEffect(() => {
     if (!navOpen) return
@@ -126,23 +120,7 @@ export default function AdminDashboardShell({ basePath, navOpen, onNavOpenChange
           </button>
         </div>
 
-        <div className="rounded-2xl border border-neutral-200/80 bg-gradient-to-br from-neutral-50 to-white p-3.5 shadow-sm">
-          <div className="flex items-center gap-3">
-            <span
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white shadow-inner ring-2 ring-white/60"
-              style={{ backgroundColor: PRIMARY_ADMIN }}
-              aria-hidden
-            >
-              <UserCircleOutlineIcon className="h-7 w-7 text-white/95" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">Conectado como</p>
-              <p className="mt-0.5 truncate text-sm font-bold leading-tight text-neutral-900">{nombreUsuario}</p>
-            </div>
-          </div>
-        </div>
-
-        <nav className="mt-8 flex flex-1 flex-col gap-1" onClick={() => onNavOpenChange(false)}>
+        <nav className="mt-4 flex flex-1 flex-col gap-1" onClick={() => onNavOpenChange(false)}>
           <NavLink to={basePath} end className={navClassName}>
             {({ isActive }) => (
               <>
@@ -180,6 +158,16 @@ export default function AdminDashboardShell({ basePath, navOpen, onNavOpenChange
                   <ChartIcon className="h-5 w-5" />
                 </span>
                 Analíticas
+              </>
+            )}
+          </NavLink>
+          <NavLink to={`${basePath}/horarios`} className={navClassName}>
+            {({ isActive }) => (
+              <>
+                <span className={isActive ? 'text-white' : 'text-neutral-500'}>
+                  <ClockIcon className="h-5 w-5" />
+                </span>
+                Horarios
               </>
             )}
           </NavLink>

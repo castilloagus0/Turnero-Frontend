@@ -20,6 +20,7 @@ import DashboardAdminProximosTurnos from './pages/DashboardAdmin/DashboardAdminP
 import DashboardAdminUsuariosActivos from './pages/DashboardAdmin/DashboardAdminUsuariosActivos'
 import DashboardAdminServiciosActivos from './pages/DashboardAdmin/DashboardAdminServiciosActivos'
 import DashboardAdminAnaliticas from './pages/DashboardAdmin/DashboardAdminAnaliticas'
+import DashboardAdminHorarios from './pages/DashboardAdmin/DashboardAdminHorarios'
 import AdminTurnos from './pages/AdminTurnos'
 import { ResultPayment } from './pages/ReturnPayment'
 
@@ -56,6 +57,7 @@ function App() {
               <Route path="usuarios-activos" element={<DashboardAdminUsuariosActivos />} />
               <Route path="servicios-activos" element={<DashboardAdminServiciosActivos />} />
               <Route path="analiticas" element={<DashboardAdminAnaliticas />} />
+              <Route path="horarios" element={<DashboardAdminHorarios />} />
               <Route path="admin-turnos" element={<AdminTurnos />} />
             </Route>
             <Route path="/admin/dashboard" element={<AdminDashboardLayout />}>
@@ -63,6 +65,7 @@ function App() {
               <Route path="usuarios-activos" element={<DashboardAdminUsuariosActivos />} />
               <Route path="servicios-activos" element={<DashboardAdminServiciosActivos />} />
               <Route path="analiticas" element={<DashboardAdminAnaliticas />} />
+              <Route path="horarios" element={<DashboardAdminHorarios />} />
               <Route path="admin-turnos" element={<AdminTurnos />} />
             </Route>
             <Route path="/admin-turnos" element={<Navigate to="/admin-dashboard/admin-turnos" replace />} />

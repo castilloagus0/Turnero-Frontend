@@ -1,16 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { getTurnoByUser } from '../../service/turno.service'
 import type { TurnosI } from '../../interface/turnos.interface'
-
-function normalizarListaDesdeRespuestaApi(response: unknown): TurnosI[] {
-  if (Array.isArray(response)) return response
-  if (response && typeof response === 'object') {
-    const r = response as { turnos?: unknown; data?: unknown }
-    if (Array.isArray(r.turnos)) return r.turnos
-    if (Array.isArray(r.data)) return r.data
-  }
-  return []
-}
+import { normalizarListaTurnosDesdeRespuestaApi } from '../../utils/turnoResponseUtils'
 
 export function useUsuarioTurnos() {
   const idUsuario = useMemo(() => {
@@ -32,7 +23,7 @@ export function useUsuarioTurnos() {
     setErrorCargaTurnos(null)
     try {
       const response = await getTurnoByUser(idUsuario, 1, 50)
-      setListaTurnos(normalizarListaDesdeRespuestaApi(response))
+      setListaTurnos(normalizarListaTurnosDesdeRespuestaApi(response))
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'No se pudieron cargar los turnos.'
       setErrorCargaTurnos(message)
